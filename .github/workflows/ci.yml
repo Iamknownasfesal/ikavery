@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ts:
+    name: TypeScript (lint · typecheck · test · build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.10
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+        env:
+          # Skip lefthook hook install on CI (no .git hooks to manage there).
+          CI: true
+          LEFTHOOK: 0
+
+      - name: Lint (biome)
+        run: bun run lint
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bun run test
+
+      - name: Build
+        run: bun run build
+
+  move:
+    name: Move (build · test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Sui CLI
+        run: |
+          set -euo pipefail
+          SUI_VERSION="testnet-v1.55.0"
+          mkdir -p .sui-bin
+          curl -fsSL "https://github.com/MystenLabs/sui/releases/download/${SUI_VERSION}/sui-${SUI_VERSION}-ubuntu-x86_64.tgz" \
+            | tar -xz -C .sui-bin
+          # Modern release tarballs put binaries at the root or in target/release/.
+          # Locate the `sui` binary regardless and put it on PATH.
+          SUI_BIN="$(find .sui-bin -name sui -type f -perm -u+x | head -n1)"
+          test -n "$SUI_BIN" || { echo "sui binary not found in tarball"; exit 1; }
+          sudo install -m 0755 "$SUI_BIN" /usr/local/bin/sui
+          sui --version
+
+      - name: Move build
+        run: sui move build --path sui/packages/contracts/recovery
+
+      - name: Move test
+        run: sui move test --path sui/packages/contracts/recovery

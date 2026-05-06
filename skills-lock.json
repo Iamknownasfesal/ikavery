@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "skills": {
+    "frontend-design": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "skillPath": "skills/frontend-design/SKILL.md",
+      "computedHash": "063a0e6448123cd359ad0044cc46b0e490cc7964d45ef4bb9fd842bd2ffbca67"
+    },
+    "ika-move": {
+      "source": "dwallet-labs/ika",
+      "sourceType": "github",
+      "skillPath": "skills/ika-move/SKILL.md",
+      "computedHash": "569784da7809e576a243dda4f7a2647153a739dbe1d8c105f6c39d7adb96d8c6"
+    },
+    "ika-sdk": {
+      "source": "dwallet-labs/ika",
+      "sourceType": "github",
+      "skillPath": "skills/ika-sdk/SKILL.md",
+      "computedHash": "4fa148f8e6f1598b51ecfc9f7e052f95dcb9654ddfa2a29c1d828e0337ea2761"
+    },
+    "ika-solana-prealpha": {
+      "source": "kitty4D/ika-and-encrypt-solana-prealpha-skills",
+      "sourceType": "github",
+      "skillPath": "skills/ika-solana-prealpha/SKILL.md",
+      "computedHash": "78b769872943dde33d8d9d5bc5918c75279f49795fea40f573c5237ad982c343"
+    },
+    "turborepo": {
+      "source": "vercel/turborepo",
+      "sourceType": "github",
+      "skillPath": "skills/turborepo/SKILL.md",
+      "computedHash": "510f76707f45eaf996a6034e0963a9680145f2e420a5d999cbb29a1dcf462431"
+    }
+  }
+}

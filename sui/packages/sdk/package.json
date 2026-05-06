@@ -1,0 +1,63 @@
+{
+  "name": "@fesal-packages/ikavery-sui-sdk",
+  "version": "0.1.0",
+  "description": "Sui-side SDK for the Ikavery dWallet recovery protocol — passkey-gated key import, threshold approval, and cross-chain sweep flows.",
+  "license": "BSD-3-Clause",
+  "author": "fesal <https://github.com/iamknownasfesal>",
+  "homepage": "https://sui.ikavery.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/iamknownasfesal/ikavery"
+  },
+  "keywords": [
+    "ika",
+    "ikavery",
+    "dwallet",
+    "mpc",
+    "passkey",
+    "webauthn",
+    "sui",
+    "key-recovery"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "test": "bun test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "codegen": "(cd ../contracts/recovery && sui move summary) && sui-ts-codegen generate",
+    "lint": "cd ../../.. && biome check sui/packages/sdk",
+    "prepublishOnly": "bun run build"
+  },
+  "dependencies": {
+    "@fesal-packages/ikavery-core": "workspace:*",
+    "@ika.xyz/sdk": "^0.4.0",
+    "@mysten/bcs": "^2.0.3",
+    "@mysten/sui": "^2.16.0",
+    "@noble/curves": "^1.6.0",
+    "@noble/hashes": "^1.5.0",
+    "@simplewebauthn/browser": "^11.0.0",
+    "@solana/spl-token": "^0.4.9",
+    "@solana/web3.js": "^1.95.4"
+  },
+  "devDependencies": {
+    "@mysten/codegen": "^0.10.4",
+    "@types/bun": "^1.1.13",
+    "typescript": "^5.6.3"
+  }
+}

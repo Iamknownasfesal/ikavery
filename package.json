@@ -1,0 +1,36 @@
+{
+  "name": "ikavery",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Passkey-gated key import & sweep recovery on Sui via Ika dWallets",
+  "workspaces": [
+    "packages/*",
+    "sui/packages/*",
+    "solana/packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "format": "biome format --write",
+    "typecheck": "turbo run typecheck",
+    "dev": "turbo run dev",
+    "move:build": "cd sui/packages/contracts/recovery && sui move build",
+    "move:test": "cd sui/packages/contracts/recovery && sui move test",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.14",
+    "lefthook": "^2.1.6",
+    "turbo": "^2.5.0",
+    "typescript": "^5.6.3"
+  },
+  "packageManager": "bun@1.3.10",
+  "engines": {
+    "bun": ">=1.3.0"
+  },
+  "overrides": {
+    "@solana/web3.js": "1.98.1"
+  }
+}
