@@ -18,6 +18,7 @@ alloc = []
 client = []
 debug = []
 idl-build = ["quasar-lang/idl-build"]
+legacy-integration = []
 
 [dependencies]
 quasar-lang = { git = "https://github.com/blueshift-gg/quasar" }
@@ -38,6 +39,11 @@ solana-account = { version = "3.4.0" }
 solana-address = { version = "2.2.0", features = ["decode"] }
 solana-instruction = { version = "3.2.0", features = ["bincode"] }
 solana-pubkey = { version = "4.1.0" }
+
+[[test]]
+name = "integration"
+path = "tests/integration.rs"
+required-features = ["legacy-integration"]
 
 [profile.release]
 overflow-checks = true
