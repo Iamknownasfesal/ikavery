@@ -29,11 +29,7 @@ export interface ShellHeaderProps {
   navLinks?: { href: string; label: string }[];
 }
 
-const DEFAULT_NAV: ShellHeaderProps["navLinks"] = [
-  { href: "#how", label: "How it works" },
-  { href: "#trust", label: "Trust model" },
-  { href: "#faq", label: "FAQ" },
-];
+const DEFAULT_NAV: ShellHeaderProps["navLinks"] = [];
 
 export function ShellHeader({
   brand = "Ikavery",
