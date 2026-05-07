@@ -11,6 +11,7 @@ import type {
   PasskeyCredential,
   WebAuthnAssertion,
 } from "../types";
+import { extractEs256PubkeyFromAttestationObject } from "./cose";
 import { derSigToCompactRaw64, spkiToCompressedP256 } from "./spki";
 
 const encoder = new TextEncoder();
@@ -52,16 +53,29 @@ export async function registerPasskey(opts: {
     },
   });
 
-  const publicKey = result.response.publicKey;
-  if (!publicKey) {
+  // Prefer the SPKI from `getPublicKey()`; fall back to parsing the
+  // attestationObject directly. Firefox + 1Password ships ES256 credentials
+  // but `getPublicKey()` returns null, so without this fallback the flow
+  // dead-ends at registration.
+  let publicKey: Uint8Array;
+  if (result.response.publicKey) {
+    const spki = new Uint8Array(
+      base64URLStringToBuffer(result.response.publicKey),
+    );
+    publicKey = spkiToCompressedP256(spki);
+  } else if (result.response.attestationObject) {
+    const attobj = new Uint8Array(
+      base64URLStringToBuffer(result.response.attestationObject),
+    );
+    publicKey = extractEs256PubkeyFromAttestationObject(attobj);
+  } else {
     throw new Error(
-      "authenticator did not expose response.publicKey — only ES256 platform authenticators are supported",
+      "passkey registration: response is missing both publicKey and attestationObject",
     );
   }
-  const spki = new Uint8Array(base64URLStringToBuffer(publicKey));
   return {
     credentialId: new Uint8Array(base64URLStringToBuffer(result.rawId)),
-    publicKey: spkiToCompressedP256(spki),
+    publicKey,
   };
 }
 

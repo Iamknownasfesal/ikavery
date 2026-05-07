@@ -1,5 +1,6 @@
 export * from "./constants";
 export * from "./crypto/le-bytes";
+export * from "./passkey/cose";
 export * from "./passkey/identity";
 export * from "./passkey/prf";
 export * from "./passkey/spki";
