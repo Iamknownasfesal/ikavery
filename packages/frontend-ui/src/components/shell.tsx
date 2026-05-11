@@ -89,7 +89,7 @@ const DEFAULT_ATTRIBUTION = (
   <>
     made by{" "}
     <a
-      href="https://github.com/iamknownasfesal"
+      href="https://github.com/Iamknownasfesal/ikavery"
       className="not-italic font-display text-text hover:text-clay transition-colors"
     >
       fesal

@@ -3,7 +3,7 @@ import { ArrowUpRight, Github } from "lucide-react";
 const SUI_PACKAGE_ID =
   "0x7addf2362f50ddf4ec51e7eaa2f8c40db8a45c2b3a8f2e1de1a6d24dadafedef";
 const SOLANA_PROGRAM_ID = "ikavRY1xV8t3Ye4iWf2yC7VnMhzsrCPjE5tQK1bxFHa";
-const REPO_URL = "https://github.com/iamknownasfesal";
+const REPO_URL = "https://github.com/Iamknownasfesal/ikavery";
 
 function shortId(id: string): string {
   // Match the start length of "0x" prefixed Sui ids (10 = "0x" + 8) so both
@@ -288,7 +288,7 @@ function SiteFooter() {
           className="inline-flex items-center gap-1.5 hover:text-clay transition-colors"
         >
           <Github className="h-3 w-3" />
-          source: github.com/iamknownasfesal
+          source: github.com/Iamknownasfesal/ikavery
         </a>
       </div>
     </footer>
