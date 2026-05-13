@@ -50,7 +50,9 @@ export const metadata: Metadata = {
     "threshold signing",
     "self-custody",
   ],
-  authors: [{ name: "fesal", url: "https://github.com/Iamknownasfesal/ikavery" }],
+  authors: [
+    { name: "fesal", url: "https://github.com/Iamknownasfesal/ikavery" },
+  ],
   creator: "fesal",
   openGraph: {
     type: "website",

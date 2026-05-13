@@ -144,9 +144,9 @@ describe("roster-change challenges", () => {
     const expected = sha256(
       concatBytes(u64ToLeBytes(0n), u64ToLeBytes(0n), new Uint8Array([0])),
     );
-    expect(
-      Array.from(buildRosterChangePayloadHash([], null)),
-    ).toEqual(Array.from(expected));
+    expect(Array.from(buildRosterChangePayloadHash([], null))).toEqual(
+      Array.from(expected),
+    );
   });
 
   test("payload hash with 1 removal + threshold=3", () => {
@@ -160,9 +160,9 @@ describe("roster-change challenges", () => {
         new Uint8Array([1]),
       ),
     );
-    expect(
-      Array.from(buildRosterChangePayloadHash([id], 3n)),
-    ).toEqual(Array.from(expected));
+    expect(Array.from(buildRosterChangePayloadHash([id], 3n))).toEqual(
+      Array.from(expected),
+    );
   });
 
   test("payload hash: hasNewThreshold byte differs even when threshold matches", () => {
@@ -186,9 +186,7 @@ describe("roster-change challenges", () => {
       ),
     );
     expect(
-      Array.from(
-        buildRosterChangeProposeChallenge(recoveryId, [id], 2n, 0n),
-      ),
+      Array.from(buildRosterChangeProposeChallenge(recoveryId, [id], 2n, 0n)),
     ).toEqual(Array.from(expected));
   });
 

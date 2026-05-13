@@ -30,7 +30,11 @@ describe("executorFromKeypair signAndExecute", () => {
       | {
           transaction: unknown;
           signer: unknown;
-          include: { events?: boolean; effects?: boolean; objectTypes?: boolean };
+          include: {
+            events?: boolean;
+            effects?: boolean;
+            objectTypes?: boolean;
+          };
         }
       | undefined;
     const fakeClient = {
@@ -38,7 +42,11 @@ describe("executorFromKeypair signAndExecute", () => {
         signAndExecuteTransaction: async (args: {
           transaction: unknown;
           signer: unknown;
-          include: { events?: boolean; effects?: boolean; objectTypes?: boolean };
+          include: {
+            events?: boolean;
+            effects?: boolean;
+            objectTypes?: boolean;
+          };
         }) => {
           captured = args;
           return { digest: "abc" } as never;

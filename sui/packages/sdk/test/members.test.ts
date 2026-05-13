@@ -5,8 +5,8 @@ import {
   buildNewMembersVec,
   isApproverOnlyMember,
   memberIdBytes,
-  newMemberToMoveArg,
   type NewMemberInput,
+  newMemberToMoveArg,
 } from "../src/move/members";
 
 const PKG =
@@ -115,9 +115,9 @@ describe("memberIdBytes", () => {
   test("rejects address longer than 32 bytes", () => {
     // 65-hex-char string can't be left-padded to fit 32 bytes.
     const oversized = "0x" + "ab".repeat(33);
-    expect(() => memberIdBytes({ scheme: "sender_address", address: oversized })).toThrow(
-      /invalid Sui address/,
-    );
+    expect(() =>
+      memberIdBytes({ scheme: "sender_address", address: oversized }),
+    ).toThrow(/invalid Sui address/);
   });
 });
 
@@ -128,10 +128,18 @@ describe("isApproverOnlyMember", () => {
     ).toBe(true);
   });
   test("false for every key-holding scheme", () => {
-    expect(isApproverOnlyMember({ scheme: "ed25519", publicKey: PK_32 })).toBe(false);
-    expect(isApproverOnlyMember({ scheme: "secp256k1", publicKey: PK_33_K1 })).toBe(false);
-    expect(isApproverOnlyMember({ scheme: "secp256r1", publicKey: PK_33_R1 })).toBe(false);
-    expect(isApproverOnlyMember({ scheme: "webauthn", publicKey: PK_33_WA })).toBe(false);
+    expect(isApproverOnlyMember({ scheme: "ed25519", publicKey: PK_32 })).toBe(
+      false,
+    );
+    expect(
+      isApproverOnlyMember({ scheme: "secp256k1", publicKey: PK_33_K1 }),
+    ).toBe(false);
+    expect(
+      isApproverOnlyMember({ scheme: "secp256r1", publicKey: PK_33_R1 }),
+    ).toBe(false);
+    expect(
+      isApproverOnlyMember({ scheme: "webauthn", publicKey: PK_33_WA }),
+    ).toBe(false);
   });
 });
 
@@ -140,7 +148,8 @@ describe("newMemberToMoveArg sender path", () => {
     const tx = new Transaction();
     newMemberToMoveArg(tx, PKG, {
       scheme: "sender_address",
-      address: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      address:
+        "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
     });
     const moveCalls = tx
       .getData()
