@@ -15,6 +15,9 @@ import {
   buildEnrollProposeChallenge,
   buildExecuteChallenge,
   buildProposeChallenge,
+  buildRosterChangeApproveChallenge,
+  buildRosterChangePayloadHash,
+  buildRosterChangeProposeChallenge,
 } from "../src/crypto/challenges";
 
 const enc = new TextEncoder();
@@ -130,6 +133,105 @@ describe("challenge builders", () => {
     const a = buildApproveChallenge(recoveryId, 0n);
     const b = buildApproveChallenge(recoveryId.slice(2), 0n);
     expect(Array.from(a)).toEqual(Array.from(b));
+  });
+});
+
+describe("roster-change challenges", () => {
+  const recoveryId = "0x" + "ab".repeat(32);
+  const idBytes = new Uint8Array(32).fill(0xab);
+
+  test("payload hash with empty removals + no threshold change", () => {
+    const expected = sha256(
+      concatBytes(u64ToLeBytes(0n), u64ToLeBytes(0n), new Uint8Array([0])),
+    );
+    expect(
+      Array.from(buildRosterChangePayloadHash([], null)),
+    ).toEqual(Array.from(expected));
+  });
+
+  test("payload hash with 1 removal + threshold=3", () => {
+    const id = new Uint8Array([0, 1, 2, 3]);
+    const expected = sha256(
+      concatBytes(
+        u64ToLeBytes(1n),
+        u64ToLeBytes(BigInt(id.length)),
+        id,
+        u64ToLeBytes(3n),
+        new Uint8Array([1]),
+      ),
+    );
+    expect(
+      Array.from(buildRosterChangePayloadHash([id], 3n)),
+    ).toEqual(Array.from(expected));
+  });
+
+  test("payload hash: hasNewThreshold byte differs even when threshold matches", () => {
+    const id = new Uint8Array([7]);
+    const a = buildRosterChangePayloadHash([id], 0n);
+    const b = buildRosterChangePayloadHash([id], null);
+    // null → threshold byte = 0, hasNewThreshold = 0;
+    // 0n  → threshold byte = 0, hasNewThreshold = 1.
+    expect(Array.from(a)).not.toEqual(Array.from(b));
+  });
+
+  test("propose-challenge bytes match sha256(tag || recId || payloadHash || nonce_le)", () => {
+    const id = new Uint8Array([1, 2]);
+    const payloadHash = buildRosterChangePayloadHash([id], 2n);
+    const expected = sha256(
+      concatBytes(
+        enc.encode("recovery::roster_change_propose"),
+        idBytes,
+        payloadHash,
+        u64ToLeBytes(0n),
+      ),
+    );
+    expect(
+      Array.from(
+        buildRosterChangeProposeChallenge(recoveryId, [id], 2n, 0n),
+      ),
+    ).toEqual(Array.from(expected));
+  });
+
+  test("approve-challenge bytes match sha256(tag || recId || rosterChangeId_le)", () => {
+    const expected = sha256(
+      concatBytes(
+        enc.encode("recovery::roster_change_approve"),
+        idBytes,
+        u64ToLeBytes(7n),
+      ),
+    );
+    expect(
+      Array.from(buildRosterChangeApproveChallenge(recoveryId, 7n)),
+    ).toEqual(Array.from(expected));
+  });
+
+  test("propose-challenge varies with payload", () => {
+    const a = buildRosterChangeProposeChallenge(recoveryId, [], null, 0n);
+    const b = buildRosterChangeProposeChallenge(
+      recoveryId,
+      [new Uint8Array([1])],
+      null,
+      0n,
+    );
+    expect(Array.from(a)).not.toEqual(Array.from(b));
+  });
+
+  test("propose-challenge and approve-challenge disagree at same nonce", () => {
+    const a = buildRosterChangeProposeChallenge(recoveryId, [], null, 0n);
+    const b = buildRosterChangeApproveChallenge(recoveryId, 0n);
+    expect(Array.from(a)).not.toEqual(Array.from(b));
+  });
+
+  test("approve-challenge varies with rosterChangeId", () => {
+    const a = buildRosterChangeApproveChallenge(recoveryId, 0n);
+    const b = buildRosterChangeApproveChallenge(recoveryId, 1n);
+    expect(Array.from(a)).not.toEqual(Array.from(b));
+  });
+
+  test("propose-challenge is 32 bytes", () => {
+    expect(
+      buildRosterChangeProposeChallenge(recoveryId, [], null, 0n).length,
+    ).toBe(32);
   });
 });
 

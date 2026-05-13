@@ -138,7 +138,62 @@ describe("propose encoding", () => {
           pubkey: new Uint8Array(32),
         },
       }),
-    ).toThrow();
+    ).toThrow(/at least one/);
+  });
+
+  test("rejects bundle > MAX_BUNDLE_PER_PROPOSAL", () => {
+    const tooMany = Array.from({ length: 9 }, () => new Uint8Array(32));
+    expect(() =>
+      buildProposeIx({
+        recovery: new PublicKey(new Uint8Array(32).fill(1)),
+        recoveryId: new PublicKey(new Uint8Array(32).fill(2)),
+        proposalIndex: 0,
+        proposer: Keypair.generate().publicKey,
+        intentDigests: tooMany,
+        userPubkey,
+        signatureScheme: 0,
+        credential: {
+          scheme: SCHEME_SOLANA_ADDRESS,
+          pubkey: new Uint8Array(32),
+        },
+      }),
+    ).toThrow(/MAX_BUNDLE_PER_PROPOSAL/);
+  });
+
+  test("rejects digest with non-32-byte length", () => {
+    expect(() =>
+      buildProposeIx({
+        recovery: new PublicKey(new Uint8Array(32).fill(1)),
+        recoveryId: new PublicKey(new Uint8Array(32).fill(2)),
+        proposalIndex: 0,
+        proposer: Keypair.generate().publicKey,
+        intentDigests: [new Uint8Array(31)],
+        userPubkey,
+        signatureScheme: 0,
+        credential: {
+          scheme: SCHEME_SOLANA_ADDRESS,
+          pubkey: new Uint8Array(32),
+        },
+      }),
+    ).toThrow(/32 bytes/);
+  });
+
+  test("rejects non-32-byte userPubkey", () => {
+    expect(() =>
+      buildProposeIx({
+        recovery: new PublicKey(new Uint8Array(32).fill(1)),
+        recoveryId: new PublicKey(new Uint8Array(32).fill(2)),
+        proposalIndex: 0,
+        proposer: Keypair.generate().publicKey,
+        intentDigests: [new Uint8Array(32)],
+        userPubkey: new Uint8Array(31),
+        signatureScheme: 0,
+        credential: {
+          scheme: SCHEME_SOLANA_ADDRESS,
+          pubkey: new Uint8Array(32),
+        },
+      }),
+    ).toThrow(/user_pubkey/);
   });
 });
 

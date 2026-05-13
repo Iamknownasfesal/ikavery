@@ -1,7 +1,15 @@
 import { describe, expect, test } from "bun:test";
+import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
+import { Secp256k1Keypair } from "@mysten/sui/keypairs/secp256k1";
+import { Secp256r1Keypair } from "@mysten/sui/keypairs/secp256r1";
 import { Transaction } from "@mysten/sui/transactions";
 
-import { buildCredential } from "../src/move/credential";
+import {
+  authSignerFromKeypair,
+  authSignerFromPasskey,
+  buildCredential,
+  credentialFromSerializedSignature,
+} from "../src/move/credential";
 
 const PKG =
   "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef";
@@ -82,5 +90,93 @@ describe("buildCredential", () => {
     expect(calls[0]!.MoveCall!.package).toBe(PKG);
     // No user-supplied args — the Move builder reads ctx.sender() itself.
     expect(calls[0]!.MoveCall!.arguments?.length ?? 0).toBe(0);
+  });
+});
+
+describe("authSignerFromKeypair", () => {
+  test("ed25519 keypair → ed25519 CredentialInput with 32-byte pubkey + 64-byte sig", async () => {
+    const kp = new Ed25519Keypair();
+    const signer = authSignerFromKeypair(kp);
+    const challenge = new Uint8Array(32).fill(0xab);
+    const cred = await signer.sign(challenge);
+    expect(cred.scheme).toBe("ed25519");
+    if (cred.scheme !== "ed25519") throw new Error();
+    expect(cred.publicKey.length).toBe(32);
+    expect(cred.signature.length).toBe(64);
+  });
+
+  test("secp256k1 keypair → secp256k1 CredentialInput with 33-byte compressed pubkey", async () => {
+    const kp = new Secp256k1Keypair();
+    const signer = authSignerFromKeypair(kp);
+    const cred = await signer.sign(new Uint8Array(32).fill(0xcd));
+    expect(cred.scheme).toBe("secp256k1");
+    if (cred.scheme !== "secp256k1") throw new Error();
+    expect(cred.publicKey.length).toBe(33);
+    expect(cred.signature.length).toBe(64);
+  });
+
+  test("secp256r1 keypair → secp256r1 CredentialInput", async () => {
+    const kp = new Secp256r1Keypair();
+    const signer = authSignerFromKeypair(kp);
+    const cred = await signer.sign(new Uint8Array(32).fill(0xef));
+    expect(cred.scheme).toBe("secp256r1");
+    if (cred.scheme !== "secp256r1") throw new Error();
+    expect(cred.publicKey.length).toBe(33);
+    expect(cred.signature.length).toBe(64);
+  });
+
+  test("same challenge → same ed25519 signature (deterministic per RFC8032)", async () => {
+    const kp = new Ed25519Keypair();
+    const signer = authSignerFromKeypair(kp);
+    const challenge = new Uint8Array(32).fill(0x42);
+    const c1 = await signer.sign(challenge);
+    const c2 = await signer.sign(challenge);
+    if (c1.scheme !== "ed25519" || c2.scheme !== "ed25519") throw new Error();
+    expect(Array.from(c1.signature)).toEqual(Array.from(c2.signature));
+  });
+});
+
+describe("credentialFromSerializedSignature", () => {
+  test("round-trips a Sui ed25519 signPersonalMessage signature", async () => {
+    const kp = new Ed25519Keypair();
+    const challenge = new Uint8Array(32).fill(0x11);
+    const { signature } = await kp.signPersonalMessage(challenge);
+    const cred = credentialFromSerializedSignature(signature);
+    expect(cred.scheme).toBe("ed25519");
+    if (cred.scheme !== "ed25519") throw new Error();
+    expect(cred.publicKey.length).toBe(32);
+    expect(cred.signature.length).toBe(64);
+    expect(Array.from(cred.publicKey)).toEqual(
+      Array.from(kp.getPublicKey().toRawBytes()),
+    );
+  });
+
+  test("round-trips a secp256k1 signPersonalMessage signature", async () => {
+    const kp = new Secp256k1Keypair();
+    const challenge = new Uint8Array(32).fill(0x22);
+    const { signature } = await kp.signPersonalMessage(challenge);
+    const cred = credentialFromSerializedSignature(signature);
+    expect(cred.scheme).toBe("secp256k1");
+    if (cred.scheme !== "secp256k1") throw new Error();
+    expect(cred.publicKey.length).toBe(33);
+    expect(cred.signature.length).toBe(64);
+  });
+
+  test("rejects a non-parseable signature string", () => {
+    expect(() => credentialFromSerializedSignature("not-a-sig")).toThrow();
+  });
+});
+
+describe("authSignerFromPasskey", () => {
+  test("returns an AuthSigner whose sign() goes through the WebAuthn driver", () => {
+    // In Node we can't actually call navigator.credentials, so we just
+    // assert the wrapper builds correctly. Hitting the actual passkey path
+    // is exercised in browser e2e.
+    const signer = authSignerFromPasskey({
+      credentialId: new Uint8Array(16).fill(0xaa),
+      publicKey: new Uint8Array(33).fill(0xbb),
+      rpId: "example.com",
+    });
+    expect(typeof signer.sign).toBe("function");
   });
 });

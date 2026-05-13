@@ -3,7 +3,9 @@ import { Transaction } from "@mysten/sui/transactions";
 
 import {
   buildNewMembersVec,
+  isApproverOnlyMember,
   memberIdBytes,
+  newMemberToMoveArg,
   type NewMemberInput,
 } from "../src/move/members";
 
@@ -99,5 +101,52 @@ describe("memberIdBytes", () => {
     expect(id[0]).toBe(4);
     // last byte should be 0x07 since address is mostly zeros + trailing 7
     expect(id[32]).toBe(0x07);
+  });
+
+  test("sender_address pads short addresses by prepending zeros", () => {
+    const id = memberIdBytes({ scheme: "sender_address", address: "0x7" });
+    expect(id.length).toBe(33);
+    expect(id[0]).toBe(4);
+    // 0x7 padded to 64 hex chars → 32 bytes of which only the last is 0x07.
+    expect(id[32]).toBe(0x07);
+    for (let i = 1; i < 32; i++) expect(id[i]).toBe(0);
+  });
+
+  test("rejects address longer than 32 bytes", () => {
+    // 65-hex-char string can't be left-padded to fit 32 bytes.
+    const oversized = "0x" + "ab".repeat(33);
+    expect(() => memberIdBytes({ scheme: "sender_address", address: oversized })).toThrow(
+      /invalid Sui address/,
+    );
+  });
+});
+
+describe("isApproverOnlyMember", () => {
+  test("true for sender_address scheme", () => {
+    expect(
+      isApproverOnlyMember({ scheme: "sender_address", address: "0x1" }),
+    ).toBe(true);
+  });
+  test("false for every key-holding scheme", () => {
+    expect(isApproverOnlyMember({ scheme: "ed25519", publicKey: PK_32 })).toBe(false);
+    expect(isApproverOnlyMember({ scheme: "secp256k1", publicKey: PK_33_K1 })).toBe(false);
+    expect(isApproverOnlyMember({ scheme: "secp256r1", publicKey: PK_33_R1 })).toBe(false);
+    expect(isApproverOnlyMember({ scheme: "webauthn", publicKey: PK_33_WA })).toBe(false);
+  });
+});
+
+describe("newMemberToMoveArg sender path", () => {
+  test("dispatches to auth::new_sender_member with the address arg", () => {
+    const tx = new Transaction();
+    newMemberToMoveArg(tx, PKG, {
+      scheme: "sender_address",
+      address: "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+    });
+    const moveCalls = tx
+      .getData()
+      .commands.filter((c) => c.$kind === "MoveCall");
+    expect(moveCalls.length).toBe(1);
+    expect(moveCalls[0]!.MoveCall!.function).toBe("new_sender_member");
+    expect(moveCalls[0]!.MoveCall!.module).toBe("auth");
   });
 });

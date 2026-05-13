@@ -38,6 +38,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "test": "bun test",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "cd ../.. && biome check packages/core",
     "prepublishOnly": "bun run build"
