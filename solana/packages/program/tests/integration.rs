@@ -261,10 +261,7 @@ fn approval_pda_for_credential(proposal: Address, member_id_hash: Address) -> Ad
     pk_to_addr(pk)
 }
 
-fn roster_approval_pda_for_credential(
-    roster_change: Address,
-    member_id_hash: Address,
-) -> Address {
+fn roster_approval_pda_for_credential(roster_change: Address, member_id_hash: Address) -> Address {
     let prog = addr_to_pk(ikavery::ID);
     let rc_bytes = roster_change.to_bytes();
     let hash_bytes = member_id_hash.to_bytes();
@@ -576,8 +573,7 @@ const RECOVERY_MEMBERS_LEN_OFFSET: usize = RECOVERY_FIXED_LEN;
 // RosterChangeProposal: disc + recovery(32) + roster_change_index(4) +
 // proposer_id(34) + payload_hash(32) + addition_approver_only_bitmap(2) +
 // new_threshold(2) + has_new_threshold(1) + approval_count(2) + status(1) = 111.
-const ROSTER_APPROVAL_COUNT_OFFSET: usize =
-    DISC_LEN + 32 + 4 + 34 + 32 + 2 + 2 + 1;
+const ROSTER_APPROVAL_COUNT_OFFSET: usize = DISC_LEN + 32 + 4 + 34 + 32 + 2 + 2 + 1;
 const ROSTER_STATUS_OFFSET: usize = ROSTER_APPROVAL_COUNT_OFFSET + 2;
 
 fn read_u16_le(data: &[u8], off: usize) -> u16 {
@@ -775,11 +771,7 @@ fn propose_rejects_non_member() {
     .into();
     svm.process_instruction(
         &create_ix,
-        &[
-            signer(creator),
-            signer(recovery_id),
-            empty_pda(recovery),
-        ],
+        &[signer(creator), signer(recovery_id), empty_pda(recovery)],
     )
     .assert_success();
 
@@ -843,7 +835,15 @@ fn approve_rejects_non_member_and_blocks_double_approval() {
     let proposal = proposal_pda(recovery, 0);
     svm.process_instruction(
         &build_propose_ix(
-            recovery, recovery_id, proposal, alice, 0, message_bytes, message_len, [0u8; 32], 0,
+            recovery,
+            recovery_id,
+            proposal,
+            alice,
+            0,
+            message_bytes,
+            message_len,
+            [0u8; 32],
+            0,
         ),
         &propose_accounts(alice, proposal),
     )
@@ -1124,7 +1124,9 @@ fn execute_roster_change_grows_member_set() {
         "roster change must be EXECUTED"
     );
 
-    let rec_acct = svm.get_account(&addr_to_pk(recovery)).expect("recovery PDA");
+    let rec_acct = svm
+        .get_account(&addr_to_pk(recovery))
+        .expect("recovery PDA");
     assert_eq!(
         read_u16_le(&rec_acct.data, RECOVERY_MEMBERS_LEN_OFFSET),
         2,
@@ -1191,7 +1193,9 @@ fn execute_enrollment_grows_member_set() {
     )
     .assert_success();
 
-    let rec_acct = svm.get_account(&addr_to_pk(recovery)).expect("recovery PDA");
+    let rec_acct = svm
+        .get_account(&addr_to_pk(recovery))
+        .expect("recovery PDA");
     assert_eq!(
         read_u16_le(&rec_acct.data, RECOVERY_MEMBERS_LEN_OFFSET),
         3,
@@ -1269,7 +1273,10 @@ fn execute_enrollment_rejects_below_threshold() {
         &build_execute_enrollment_ix(recovery, enrollment, alice),
         &[signer(alice)],
     );
-    assert!(result.is_err(), "execute must reject below-threshold enrollment");
+    assert!(
+        result.is_err(),
+        "execute must reject below-threshold enrollment"
+    );
 }
 
 #[test]
@@ -1337,7 +1344,14 @@ fn approved_proposal(
     members: &[Address],
     threshold: u16,
     lamports: u64,
-) -> (Address, Address, Address, [u8; MAX_MESSAGE_BYTES], u16, Address) {
+) -> (
+    Address,
+    Address,
+    Address,
+    [u8; MAX_MESSAGE_BYTES],
+    u16,
+    Address,
+) {
     let (recovery_id, recovery) = bootstrap_recovery(svm, members, threshold);
     let proposer = members[0];
     let to = unique_addr();
@@ -1369,7 +1383,14 @@ fn approved_proposal(
         let _ = i;
     }
 
-    (recovery_id, recovery, proposal, message_bytes, message_len, to)
+    (
+        recovery_id,
+        recovery,
+        proposal,
+        message_bytes,
+        message_len,
+        to,
+    )
 }
 
 fn build_execute_ix(
@@ -1439,7 +1460,15 @@ fn execute_rejects_when_not_approved() {
     let proposal = proposal_pda(recovery, 0);
     svm.process_instruction(
         &build_propose_ix(
-            recovery, recovery_id, proposal, alice, 0, message_bytes, message_len, [0u8; 32], 0,
+            recovery,
+            recovery_id,
+            proposal,
+            alice,
+            0,
+            message_bytes,
+            message_len,
+            [0u8; 32],
+            0,
         ),
         &propose_accounts(alice, proposal),
     )
@@ -1456,7 +1485,10 @@ fn execute_rejects_when_not_approved() {
         &build_execute_ix(recovery, proposal, alice, message_bytes, message_len),
         &[signer(alice)],
     );
-    assert!(result.is_err(), "execute on STATUS_ACTIVE proposal must fail");
+    assert!(
+        result.is_err(),
+        "execute on STATUS_ACTIVE proposal must fail"
+    );
     assert_program_error(&result, IkaveryError::NotApproved as u32);
 }
 
@@ -1487,7 +1519,7 @@ fn execute_rejects_intent_digest_mismatch() {
 // ---------------------------------------------------------------------------
 
 use ikavery::auth::{
-    SCHEME_ED25519, SCHEME_SECP256K1, SCHEME_SECP256R1, SCHEME_WEBAUTHN, ED25519_PUBKEY_LEN,
+    ED25519_PUBKEY_LEN, SCHEME_ED25519, SCHEME_SECP256K1, SCHEME_SECP256R1, SCHEME_WEBAUTHN,
     SECP256K1_PUBKEY_LEN, SECP256R1_PUBKEY_LEN, WEBAUTHN_PUBKEY_LEN,
 };
 use ikavery::challenges;
@@ -1797,7 +1829,10 @@ fn propose_rejects_ed25519_with_wrong_challenge_in_precompile() {
         .into(),
         &[signer(sponsor), empty_pda(proposal), sysvar_acct],
     );
-    assert!(result.is_err(), "wrong precompile challenge must be rejected");
+    assert!(
+        result.is_err(),
+        "wrong precompile challenge must be rejected"
+    );
     assert_program_error(&result, IkaveryError::NoMatchingPrecompile as u32);
 }
 
@@ -1811,8 +1846,7 @@ fn build_canonical_client_data_json(challenge: &[u8; 32]) -> std::string::String
 }
 
 fn b64url_encode(bytes: &[u8]) -> std::string::String {
-    const ALPHA: &[u8; 64] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    const ALPHA: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     let mut out = std::string::String::new();
     let mut i = 0;
     while i + 3 <= bytes.len() {
@@ -1878,8 +1912,7 @@ fn propose_with_secp256k1_credential_via_recover() {
 
     // Sign the 32-byte challenge directly (no envelope) — same shape any
     // off-the-shelf k1 wallet produces with sign_prehash.
-    let (sig, recid): (Signature, RecoveryId) =
-        signing_key.sign_prehash(&challenge).unwrap();
+    let (sig, recid): (Signature, RecoveryId) = signing_key.sign_prehash(&challenge).unwrap();
     let mut auth_sig = [0u8; AUTH_SIGNATURE_BYTES];
     auth_sig[..64].copy_from_slice(sig.to_bytes().as_slice());
     auth_sig[64] = recid.to_byte();
@@ -1908,7 +1941,11 @@ fn propose_with_secp256k1_credential_via_recover() {
             auth_signature: auth_sig,
         }
         .into(),
-        &[signer(sponsor), empty_pda(proposal), instructions_sysvar_account()],
+        &[
+            signer(sponsor),
+            empty_pda(proposal),
+            instructions_sysvar_account(),
+        ],
     )
     .assert_success();
 }
@@ -1935,8 +1972,7 @@ fn propose_rejects_secp256k1_with_wrong_signature() {
     // Sign a *different* challenge → recovered pubkey won't match the
     // roster's stored pubkey.
     let wrong_challenge = [0xfeu8; 32];
-    let (sig, recid): (Signature, RecoveryId) =
-        signing_key.sign_prehash(&wrong_challenge).unwrap();
+    let (sig, recid): (Signature, RecoveryId) = signing_key.sign_prehash(&wrong_challenge).unwrap();
     let mut auth_sig = [0u8; AUTH_SIGNATURE_BYTES];
     auth_sig[..64].copy_from_slice(sig.to_bytes().as_slice());
     auth_sig[64] = recid.to_byte();
@@ -1963,7 +1999,11 @@ fn propose_rejects_secp256k1_with_wrong_signature() {
             auth_signature: auth_sig,
         }
         .into(),
-        &[signer(sponsor), empty_pda(proposal), instructions_sysvar_account()],
+        &[
+            signer(sponsor),
+            empty_pda(proposal),
+            instructions_sysvar_account(),
+        ],
     );
     assert!(result.is_err(), "wrong-message k1 sig must be rejected");
 }

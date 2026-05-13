@@ -116,16 +116,22 @@ fn parse_record<'a>(
     }
     // Header: 1-byte count, 1-byte padding, then 14 bytes per record.
     let offsets_start = 2usize
-        .checked_add(record_index.checked_mul(OFFSETS_LEN).ok_or(PrecompileError::Malformed)?)
+        .checked_add(
+            record_index
+                .checked_mul(OFFSETS_LEN)
+                .ok_or(PrecompileError::Malformed)?,
+        )
         .ok_or(PrecompileError::Malformed)?;
     if offsets_start + OFFSETS_LEN > precompile_data.len() {
         return Err(PrecompileError::Malformed);
     }
     let mut p = offsets_start;
-    let signature_offset = read_u16_le(precompile_data, &mut p).ok_or(PrecompileError::Malformed)?;
+    let signature_offset =
+        read_u16_le(precompile_data, &mut p).ok_or(PrecompileError::Malformed)?;
     let signature_instruction_index =
         read_u16_le(precompile_data, &mut p).ok_or(PrecompileError::Malformed)?;
-    let public_key_offset = read_u16_le(precompile_data, &mut p).ok_or(PrecompileError::Malformed)?;
+    let public_key_offset =
+        read_u16_le(precompile_data, &mut p).ok_or(PrecompileError::Malformed)?;
     let public_key_instruction_index =
         read_u16_le(precompile_data, &mut p).ok_or(PrecompileError::Malformed)?;
     let message_data_offset =
@@ -186,8 +192,8 @@ pub fn find_verified<'a>(
         let mut idx_cur = 2usize
             .checked_add(i.checked_mul(2).ok_or(PrecompileError::Malformed)?)
             .ok_or(PrecompileError::Malformed)?;
-        let inst_off = read_u16_le(sysvar_data, &mut idx_cur)
-            .ok_or(PrecompileError::Malformed)? as usize;
+        let inst_off =
+            read_u16_le(sysvar_data, &mut idx_cur).ok_or(PrecompileError::Malformed)? as usize;
 
         let mut p = inst_off;
         let num_accounts =
@@ -203,10 +209,8 @@ pub fn find_verified<'a>(
         prog_arr.copy_from_slice(program_id_bytes);
         let program_id = Address::new_from_array(prog_arr);
 
-        let data_len =
-            read_u16_le(sysvar_data, &mut p).ok_or(PrecompileError::Malformed)? as usize;
-        let data = read_slice(sysvar_data, &mut p, data_len)
-            .ok_or(PrecompileError::Malformed)?;
+        let data_len = read_u16_le(sysvar_data, &mut p).ok_or(PrecompileError::Malformed)? as usize;
+        let data = read_slice(sysvar_data, &mut p, data_len).ok_or(PrecompileError::Malformed)?;
 
         if &program_id != expected_program || data.is_empty() {
             continue;
@@ -271,11 +275,7 @@ mod tests {
     /// Build a single-record Ed25519/Secp256r1 precompile data buffer.
     /// `signature_len` is 64 for both; `pubkey_len` is 32 (Ed25519) or
     /// 33 (Secp256r1).
-    fn build_precompile_data(
-        signature: &[u8],
-        public_key: &[u8],
-        message: &[u8],
-    ) -> Vec<u8> {
+    fn build_precompile_data(signature: &[u8], public_key: &[u8], message: &[u8]) -> Vec<u8> {
         // Header (count, padding) + 1 offsets record + raw bytes.
         let mut out: Vec<u8> = vec![1u8, 0u8];
         out.extend_from_slice(&[0u8; OFFSETS_LEN]); // placeholder, fill below

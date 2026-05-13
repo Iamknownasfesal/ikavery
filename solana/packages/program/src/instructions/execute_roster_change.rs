@@ -68,11 +68,7 @@ impl ExecuteRosterChange {
         let approval_count: u16 = self.roster_change.approval_count.into();
         require!(approval_count >= threshold, IkaveryError::NotApproved);
 
-        roster_len = apply_removals(
-            &mut roster,
-            roster_len,
-            &removals[..removal_len],
-        )?;
+        roster_len = apply_removals(&mut roster, roster_len, &removals[..removal_len])?;
 
         // Removals can shift slots — rebuild the bitmap from scheme tags.
         let mut approver_only_bitmap = members::bitmap_from_members(&roster[..roster_len]);

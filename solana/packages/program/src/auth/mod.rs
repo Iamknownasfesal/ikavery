@@ -53,14 +53,16 @@ pub const MAX_MEMBER_ID_LEN: usize = 34;
 /// Returns `None` for unknown schemes.
 #[inline]
 pub fn id_len_for_scheme(scheme: u8) -> Option<usize> {
-    Some(1 + match scheme {
-        SCHEME_ED25519 => ED25519_PUBKEY_LEN,
-        SCHEME_SECP256K1 => SECP256K1_PUBKEY_LEN,
-        SCHEME_SECP256R1 => SECP256R1_PUBKEY_LEN,
-        SCHEME_WEBAUTHN => WEBAUTHN_PUBKEY_LEN,
-        SCHEME_SOLANA_ADDRESS => SOLANA_ADDRESS_LEN,
-        _ => return None,
-    })
+    Some(
+        1 + match scheme {
+            SCHEME_ED25519 => ED25519_PUBKEY_LEN,
+            SCHEME_SECP256K1 => SECP256K1_PUBKEY_LEN,
+            SCHEME_SECP256R1 => SECP256R1_PUBKEY_LEN,
+            SCHEME_WEBAUTHN => WEBAUTHN_PUBKEY_LEN,
+            SCHEME_SOLANA_ADDRESS => SOLANA_ADDRESS_LEN,
+            _ => return None,
+        },
+    )
 }
 
 /// Errors returned from credential verification + member-set operations.
@@ -324,12 +326,8 @@ pub fn verify_credential(
                 64,
                 |rec| {
                     rec.public_key == pubkey
-                        && webauthn::verify_assertion(
-                            rec.message,
-                            client_data_json,
-                            challenge,
-                        )
-                        .is_ok()
+                        && webauthn::verify_assertion(rec.message, client_data_json, challenge)
+                            .is_ok()
                 },
             )
             .map(|_| ())
@@ -348,9 +346,7 @@ pub fn verify_credential(
 #[inline]
 fn map_precompile_err(e: precompile::PrecompileError) -> AuthError {
     match e {
-        precompile::PrecompileError::NotInstructionsSysvar => {
-            AuthError::BadInstructionsSysvar
-        }
+        precompile::PrecompileError::NotInstructionsSysvar => AuthError::BadInstructionsSysvar,
         _ => AuthError::NoMatchingPrecompile,
     }
 }
@@ -367,9 +363,9 @@ pub fn auth_error_to_program_error(e: AuthError) -> quasar_lang::prelude::Progra
         AuthError::SchemeNotYetSupported => IkaveryError::SchemeNotYetSupported.into(),
         // The remaining variants are only produced by host-side construction
         // helpers and shouldn't surface from `verify_credential`.
-        AuthError::UnknownMember
-        | AuthError::BadSignature
-        | AuthError::BadChallengeLength => IkaveryError::SchemeNotYetSupported.into(),
+        AuthError::UnknownMember | AuthError::BadSignature | AuthError::BadChallengeLength => {
+            IkaveryError::SchemeNotYetSupported.into()
+        }
     }
 }
 
@@ -483,7 +479,9 @@ mod tests {
         assert!(validate_new_member(&NewMember::Secp256k1(&ones(33))).is_ok());
         assert!(validate_new_member(&NewMember::Secp256r1(&ones(33))).is_ok());
         assert!(validate_new_member(&NewMember::WebAuthn(&ones(33))).is_ok());
-        assert!(validate_new_member(&NewMember::Solana(Address::new_from_array([0u8; 32]))).is_ok());
+        assert!(
+            validate_new_member(&NewMember::Solana(Address::new_from_array([0u8; 32]))).is_ok()
+        );
     }
 
     #[test]

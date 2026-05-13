@@ -91,8 +91,7 @@ impl ProposeRosterChange {
         }
         let active_additions = &additions[..addition_len];
         let active_removals = &removals[..removal_len];
-        let addition_approver_only_bitmap: u16 =
-            self.staging.addition_approver_only_bitmap.into();
+        let addition_approver_only_bitmap: u16 = self.staging.addition_approver_only_bitmap.into();
         let new_threshold: u16 = self.staging.new_threshold.into();
         let has_new_threshold: u8 = self.staging.has_new_threshold;
 
@@ -106,8 +105,8 @@ impl ProposeRosterChange {
         for slot in active_removals {
             members::validate_slot(slot)?;
             let id = members::slot_id(slot)?;
-            let _ = members::find_index(self.recovery.members(), id)
-                .ok_or(IkaveryError::NotAMember)?;
+            let _ =
+                members::find_index(self.recovery.members(), id).ok_or(IkaveryError::NotAMember)?;
         }
 
         let challenge = challenges::roster_change_propose(

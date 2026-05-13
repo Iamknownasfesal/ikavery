@@ -63,11 +63,10 @@ impl Propose {
         // Unpack the contiguous 32*N byte buffer into discrete digests for
         // the bundle-hash helper. The trailing slots in `digests_packed`
         // past `n*32` are ignored (proposer can leave them zero).
-        let mut digests: [[u8; 32]; MAX_BUNDLE_PER_PROPOSAL] =
-            [[0u8; 32]; MAX_BUNDLE_PER_PROPOSAL];
-        for i in 0..n {
+        let mut digests: [[u8; 32]; MAX_BUNDLE_PER_PROPOSAL] = [[0u8; 32]; MAX_BUNDLE_PER_PROPOSAL];
+        for (i, dst) in digests.iter_mut().enumerate().take(n) {
             let off = i * 32;
-            digests[i].copy_from_slice(&digests_packed[off..off + 32]);
+            dst.copy_from_slice(&digests_packed[off..off + 32]);
         }
 
         // Resolve the credential into its on-chain id and confirm it's a

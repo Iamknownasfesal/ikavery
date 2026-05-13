@@ -10,3 +10,9 @@ pre-push:
   jobs:
     - name: typecheck
       run: bun run typecheck
+    - name: cargo-fmt
+      glob: "solana/packages/program/**/*.rs"
+      run: cargo fmt --manifest-path solana/packages/program/Cargo.toml --all -- --check
+    - name: cargo-clippy
+      glob: "solana/packages/program/**/*.rs"
+      run: cargo clippy --manifest-path solana/packages/program/Cargo.toml --all-targets -- -D warnings

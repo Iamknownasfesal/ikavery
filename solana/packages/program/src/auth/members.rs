@@ -5,8 +5,8 @@
 //! past the active id length are zero-padded. Active membership lives in a
 //! `Vec<MemberSlot, MAX_MEMBERS>` whose length is the live member count.
 
-use crate::auth;
 use super::{id_len_for_scheme, MAX_MEMBER_ID_LEN, SCHEME_SOLANA_ADDRESS, SOLANA_ADDRESS_LEN};
+use crate::auth;
 use crate::error::IkaveryError;
 use crate::state::{MemberSlot, MAX_MEMBERS, MEMBER_SLOT_LEN};
 use quasar_lang::prelude::ProgramError;
@@ -58,7 +58,7 @@ pub fn credential_slot(scheme: u8, pubkey: &[u8]) -> Result<MemberSlot, ProgramE
 }
 
 /// Active pubkey slice inside a fixed-size 33-byte ix buffer for `scheme`.
-pub fn pubkey_slice<'a>(scheme: u8, pubkey: &'a [u8]) -> Result<&'a [u8], ProgramError> {
+pub fn pubkey_slice(scheme: u8, pubkey: &[u8]) -> Result<&[u8], ProgramError> {
     let id_len = id_len_for_scheme(scheme).ok_or(IkaveryError::UnknownScheme)?;
     let key_len = id_len - 1;
     if pubkey.len() < key_len {
@@ -94,10 +94,10 @@ pub fn validate_members(members: &[MemberSlot]) -> Result<(), ProgramError> {
     for slot in members {
         validate_slot(slot)?;
     }
-    for i in 0..members.len() {
-        let id_i = slot_id(&members[i])?;
-        for j in (i + 1)..members.len() {
-            let id_j = slot_id(&members[j])?;
+    for (i, m_i) in members.iter().enumerate() {
+        let id_i = slot_id(m_i)?;
+        for m_j in members.iter().skip(i + 1) {
+            let id_j = slot_id(m_j)?;
             if id_i == id_j {
                 return Err(IkaveryError::DuplicateMember.into());
             }

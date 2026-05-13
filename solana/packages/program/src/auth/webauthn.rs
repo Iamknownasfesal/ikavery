@@ -71,7 +71,10 @@ pub fn verify_assertion(
     let mut needle = [0u8; 13 + 43 + 1];
     let prefix = b"\"challenge\":\"";
     needle[..prefix.len()].copy_from_slice(prefix);
-    base64url_encode_32(expected_challenge, &mut needle[prefix.len()..prefix.len() + 43]);
+    base64url_encode_32(
+        expected_challenge,
+        &mut needle[prefix.len()..prefix.len() + 43],
+    );
     needle[prefix.len() + 43] = b'"';
 
     if !contains_subsequence(client_data_json, &needle) {
@@ -83,8 +86,7 @@ pub fn verify_assertion(
 /// Encode a 32-byte input as 43-char unpadded base64url. Writes exactly
 /// 43 bytes into `out`.
 fn base64url_encode_32(input: &[u8; 32], out: &mut [u8]) {
-    const ALPHA: &[u8; 64] =
-        b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+    const ALPHA: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     debug_assert_eq!(out.len(), 43);
     // 10 full 3-byte groups -> 40 chars
     let mut g = 0;
@@ -240,7 +242,10 @@ mod tests {
 
     #[test]
     fn base64url_encode_32_matches_reference() {
-        let input = [0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31];
+        let input = [
+            0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
+            24, 25, 26, 27, 28, 29, 30, 31,
+        ];
         let mut got = [0u8; 43];
         base64url_encode_32(&input, &mut got);
         let expected = b64url_encode(&input);

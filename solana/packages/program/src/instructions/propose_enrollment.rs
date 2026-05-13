@@ -45,10 +45,7 @@ impl ProposeEnrollment {
         auth_signature: [u8; AUTH_SIGNATURE_BYTES],
     ) -> Result<(), ProgramError> {
         let expected_index: u32 = self.recovery.enrollment_count.into();
-        require!(
-            enrollment_index == expected_index,
-            IkaveryError::WrongIndex
-        );
+        require!(enrollment_index == expected_index, IkaveryError::WrongIndex);
 
         // Existing-member auth: the proposer must already be in the roster.
         let cred_pubkey = members::pubkey_slice(auth_scheme, &auth_pubkey)?;

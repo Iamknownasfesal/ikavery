@@ -84,9 +84,9 @@ pub fn hash_message_bytes(message_bytes: &[u8]) -> Result<[u8; 32], IntentError>
     let mut whitelisted_count = 0u32;
     for ix in parsed.instructions() {
         let ix = ix?;
-        let pid = parsed.program_id(&ix).ok_or(IntentError::Parse(
-            ParseError::UnexpectedEof,
-        ))?;
+        let pid = parsed
+            .program_id(&ix)
+            .ok_or(IntentError::Parse(ParseError::UnexpectedEof))?;
         if pid != &COMPUTE_BUDGET_PROGRAM_ID {
             whitelisted_count += 1;
         }
@@ -95,9 +95,9 @@ pub fn hash_message_bytes(message_bytes: &[u8]) -> Result<[u8; 32], IntentError>
 
     for ix in parsed.instructions() {
         let ix = ix?;
-        let pid = parsed.program_id(&ix).ok_or(IntentError::Parse(
-            ParseError::UnexpectedEof,
-        ))?;
+        let pid = parsed
+            .program_id(&ix)
+            .ok_or(IntentError::Parse(ParseError::UnexpectedEof))?;
         if pid == &COMPUTE_BUDGET_PROGRAM_ID {
             continue;
         } else if pid == &SYSTEM_PROGRAM_ID {
@@ -326,7 +326,7 @@ pub enum SweepIxIntent {
     },
 }
 
-#[cfg(not(target_os = "solana"))]
+#[cfg(all(test, not(target_os = "solana")))]
 mod host_bcs {
     use super::*;
     use serde::{Deserialize, Serialize};
@@ -764,7 +764,7 @@ mod tests {
     #[test]
     fn intent_hash_changes_with_lamports() {
         let intent = from_message_bytes(TRANSFER_FIXTURE).unwrap();
-        let h_orig = hash_intents(&[intent.clone()]);
+        let h_orig = hash_intents(core::slice::from_ref(&intent));
         let mut mutated = intent;
         if let SweepIxIntent::SystemTransfer { lamports, .. } = &mut mutated.ixs[0] {
             *lamports = 999;
@@ -775,7 +775,7 @@ mod tests {
     #[test]
     fn intent_hash_changes_with_destination() {
         let intent = from_message_bytes(TRANSFER_FIXTURE).unwrap();
-        let h_orig = hash_intents(&[intent.clone()]);
+        let h_orig = hash_intents(core::slice::from_ref(&intent));
         let mut mutated = intent;
         if let SweepIxIntent::SystemTransfer { to, .. } = &mut mutated.ixs[0] {
             to[0] ^= 0xff;
@@ -854,8 +854,10 @@ mod tests {
             },
         ];
 
-        let serde_form: Vec<host_bcs::SweepIntentSerde> =
-            intents.iter().map(host_bcs::SweepIntentSerde::from).collect();
+        let serde_form: Vec<host_bcs::SweepIntentSerde> = intents
+            .iter()
+            .map(host_bcs::SweepIntentSerde::from)
+            .collect();
         let reference = bcs::to_bytes(&serde_form).unwrap();
         let handrolled = bcs_encode_intents(&intents);
         assert_eq!(handrolled, reference);

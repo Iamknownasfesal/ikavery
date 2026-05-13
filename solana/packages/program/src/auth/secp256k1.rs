@@ -85,7 +85,11 @@ pub fn verify(
 
     // Compress: 0x02 if y even, 0x03 if y odd, then the 32-byte x-coord.
     // `uncompressed = x(32) || y(32)`; the parity is the LSB of y[31].
-    let prefix = if uncompressed[63] & 1 == 0 { 0x02 } else { 0x03 };
+    let prefix = if uncompressed[63] & 1 == 0 {
+        0x02
+    } else {
+        0x03
+    };
     let mut compressed = [0u8; SECP256K1_PUBKEY_LEN];
     compressed[0] = prefix;
     compressed[1..].copy_from_slice(&uncompressed[..32]);
@@ -101,7 +105,6 @@ mod tests {
     use super::*;
     extern crate std;
     use k256::ecdsa::{signature::hazmat::PrehashSigner, RecoveryId, Signature, SigningKey};
-    use k256::elliptic_curve::sec1::ToEncodedPoint;
     use std::vec::Vec;
 
     fn fresh_keypair_and_sig(challenge: &[u8; 32]) -> (Vec<u8>, [u8; 65]) {

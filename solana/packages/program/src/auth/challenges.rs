@@ -284,8 +284,7 @@ mod tests {
     #[test]
     fn roster_change_payload_rejects_oversize() {
         let id: &[u8] = b"\x04abc";
-        let big: std::vec::Vec<&[u8]> =
-            std::iter::repeat_n(id, MAX_ROSTER_REMOVALS + 1).collect();
+        let big: std::vec::Vec<&[u8]> = std::iter::repeat_n(id, MAX_ROSTER_REMOVALS + 1).collect();
         assert!(roster_change_payload(&big, 0, false).is_none());
     }
 }

@@ -46,7 +46,8 @@ impl CreateRecovery {
         // SAFETY: `[u8; MEMBER_SLOT_LEN * MAX_MEMBERS]` and `[MemberSlot; MAX_MEMBERS]`
         // have identical size and alignment (1).
         let slots: &[MemberSlot; MAX_MEMBERS] = unsafe {
-            &*(&members_packed as *const [u8; CREATE_MEMBERS_BYTES] as *const [MemberSlot; MAX_MEMBERS])
+            &*(&members_packed as *const [u8; CREATE_MEMBERS_BYTES]
+                as *const [MemberSlot; MAX_MEMBERS])
         };
         let active = &slots[..count];
         members::validate_members(active)?;
