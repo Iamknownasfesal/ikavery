@@ -1,5 +1,5 @@
 import { moveRecovery } from "@fesal-packages/ikavery-sui-sdk";
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
 
 import { env } from "./env";
 
@@ -61,7 +61,7 @@ export interface VaultState {
 }
 
 export async function readVaultState(
-  suiClient: SuiJsonRpcClient,
+  suiClient: ClientWithCoreApi,
   recoveryId: string,
 ): Promise<VaultState> {
   const { object } = await suiClient.core.getObject({

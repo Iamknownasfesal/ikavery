@@ -11,6 +11,7 @@ import {
   executeEnrollment,
   executeRecovery,
   executeRosterChange,
+  getGrpcFullnodeUrl,
   importSolanaKey,
   proposeEnrollment,
   proposeRecovery,
@@ -26,7 +27,8 @@ import {
   IkaClient,
   UserShareEncryptionKeys,
 } from "@ika.xyz/sdk";
-import { getJsonRpcFullnodeUrl, SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
+import { SuiGrpcClient } from "@mysten/sui/grpc";
 import { Transaction } from "@mysten/sui/transactions";
 
 export interface SessionConfig {
@@ -377,7 +379,7 @@ export type SessionEvent =
 
 const ctx = self as DedicatedWorkerGlobalScope;
 let ikaClient: IkaClient | null = null;
-let suiClient: SuiJsonRpcClient | null = null;
+let suiClient: ClientWithCoreApi | null = null;
 let recoveryClient: RecoveryClient | null = null;
 let initPromise: Promise<void> | null = null;
 
@@ -385,8 +387,8 @@ async function ensureInit(config: SessionConfig): Promise<void> {
   if (recoveryClient) return;
   if (initPromise) return initPromise;
   initPromise = (async () => {
-    const url = config.rpcUrl || getJsonRpcFullnodeUrl(config.network);
-    suiClient = new SuiJsonRpcClient({ url, network: config.network });
+    const url = config.rpcUrl || getGrpcFullnodeUrl(config.network);
+    suiClient = new SuiGrpcClient({ baseUrl: url, network: config.network });
     ikaClient = new IkaClient({
       suiClient,
       config: getNetworkConfig(config.network),

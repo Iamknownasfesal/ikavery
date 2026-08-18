@@ -5,10 +5,12 @@ import {
   type CredentialInput,
   credentialFromSerializedSignature,
 } from "@fesal-packages/ikavery-sui-sdk";
-import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard";
+import type { UiWallet } from "@mysten/dapp-kit-core";
 
 import type { SignerOption } from "@/components/vault/signer-gas-payer";
 import type { AuthIdentity } from "@/workers/session.worker";
+
+import { dAppKit } from "./dapp-kit";
 import { env } from "./env";
 import { hexToBytes } from "./storage";
 
@@ -39,7 +41,7 @@ export async function resolveCredentialRequest(
   identity: AuthIdentity,
   opts: {
     /** All wallets `useWallets()` returned — used only for the wallet path. */
-    wallets: readonly WalletWithRequiredFeatures[];
+    wallets: readonly UiWallet[];
   },
 ): Promise<CredentialInput> {
   if (identity.kind === "passkey") {
@@ -75,16 +77,9 @@ export async function resolveCredentialRequest(
       `Wallet "${wallet.name}" no longer exposes ${identity.address.slice(0, 10)}…`,
     );
   }
-  const feature = wallet.features["sui:signPersonalMessage"];
-  if (!feature) {
-    throw new Error(
-      `Wallet "${wallet.name}" doesn't support sui:signPersonalMessage.`,
-    );
-  }
-  const { signature } = await feature.signPersonalMessage({
+  const { signature } = await dAppKit.signPersonalMessage({
     account,
     message: challenge,
-    chain: `sui:${env.network}` as const,
   });
   return credentialFromSerializedSignature(signature);
 }

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+
 import { env } from "@/lib/env";
 import { useSetup } from "@/store/setup";
 
@@ -183,9 +184,7 @@ function BlockId({
             big
               ? "text-[28px] sm:text-[44px] lg:text-[56px] leading-[1.02]"
               : "text-[18px] sm:text-[24px] lg:text-[30px] leading-[1.1]"
-          } tracking-[-0.018em] tabular ${
-            accent === "clay" ? "text-clay" : "text-text"
-          } break-all`}
+          } tracking-[-0.018em] tabular ${accent === "clay" ? "text-clay" : "text-text"} break-all`}
           style={{ fontVariantLigatures: "none" }}
         >
           {value}

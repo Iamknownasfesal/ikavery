@@ -1,9 +1,9 @@
 "use client";
 
 import { PRF_SALT } from "@fesal-packages/ikavery-core";
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
-import { p256 } from "@noble/curves/p256";
-import { sha256 } from "@noble/hashes/sha256";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
+import { p256 } from "@noble/curves/nist.js";
+import { sha256 } from "@noble/hashes/sha2.js";
 import { startAuthentication } from "@simplewebauthn/browser";
 
 import { listRecoveriesForMember, memberIdFor } from "./registry";
@@ -34,7 +34,7 @@ export interface PasskeyDiscovery {
  * IndexedDB without a re-enrollment.
  */
 export async function discoverViaPasskey(
-  suiClient: SuiJsonRpcClient,
+  suiClient: ClientWithCoreApi,
   rpId: string,
 ): Promise<PasskeyDiscovery> {
   const challenge = crypto.getRandomValues(new Uint8Array(32));
@@ -85,12 +85,12 @@ export async function discoverViaPasskey(
   const msgHash = sha256(signedMessage);
 
   // ECDSA pubkey recovery: 2 candidates from any (r, s) signature.
-  const sig = p256.Signature.fromDER(sigDer);
+  const sig = p256.Signature.fromBytes(sigDer, "der");
   const candidates: Uint8Array[] = [];
   for (const recBit of [0, 1] as const) {
     try {
       const point = sig.addRecoveryBit(recBit).recoverPublicKey(msgHash);
-      candidates.push(point.toRawBytes(true));
+      candidates.push(point.toBytes(true));
     } catch {
       // Recovery bit invalid for this signature — skip.
     }

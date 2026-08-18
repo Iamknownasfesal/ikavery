@@ -1,4 +1,4 @@
-import { sha512 } from "@noble/hashes/sha2";
+import { sha512 } from "@noble/hashes/sha2.js";
 
 const L = 2n ** 252n + 27742317777372353535851937790883648493n;
 

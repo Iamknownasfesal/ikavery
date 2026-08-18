@@ -5,7 +5,7 @@ import {
   type TransactionExecuteResult,
 } from "@fesal-packages/ikavery-sui-sdk";
 import { getNetworkConfig } from "@ika.xyz/sdk";
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { isValidSuiAddress, normalizeSuiAddress } from "@mysten/sui/utils";
 
@@ -35,10 +35,10 @@ export interface ReplenishParams {
   /**
    * Used to pre-resolve `coinWithBalance` (calls `core.listCoins`). Dapp-kit's
    * bundled SuiClient is on an older API surface that lacks `listCoins`, so we
-   * resolve here with the recovery client's SuiJsonRpcClient and hand the
+   * resolve here with the recovery client's ClientWithCoreApi and hand the
    * wallet a fully-built tx.
    */
-  suiClient: SuiJsonRpcClient;
+  suiClient: ClientWithCoreApi;
   signAndExecute: (tx: Transaction) => Promise<TransactionExecuteResult>;
 }
 
@@ -91,7 +91,7 @@ export async function replenishPresigns(
   );
   tx.transferObjects([ikaCoin, suiCoin], payerAddress);
 
-  // Resolve coinWithBalance against our SuiJsonRpcClient and reconstruct the
+  // Resolve coinWithBalance against our ClientWithCoreApi and reconstruct the
   // tx so the wallet's older client never needs to call core.listCoins.
   const txJson = await tx.toJSON({ client: params.suiClient });
   const resolved = Transaction.from(txJson);
@@ -99,9 +99,7 @@ export async function replenishPresigns(
   const result = await params.signAndExecute(resolved);
   if (result.$kind !== "Transaction") {
     throw new Error(
-      `replenishPresigns failed: ${JSON.stringify(
-        result.FailedTransaction.status,
-      )}`,
+      `replenishPresigns failed: ${JSON.stringify(result.FailedTransaction.status)}`,
     );
   }
   return {

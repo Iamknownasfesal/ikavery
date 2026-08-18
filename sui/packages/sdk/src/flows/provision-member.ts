@@ -130,7 +130,10 @@ export async function provisionRosterMember(
   const dWallet = (await ikaClient.getDWalletInParticularState(
     params.dwalletId,
     "Active",
-    { timeout: timeoutMs, interval: pollIntervalMs },
+    {
+      timeout: timeoutMs,
+      interval: pollIntervalMs,
+    },
   )) as ImportedKeyDWallet;
 
   const reTx = new Transaction();

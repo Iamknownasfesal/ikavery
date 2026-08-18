@@ -2,11 +2,7 @@
 
 import { Button, Card, cn } from "@fesal-packages/ikavery-frontend-ui";
 import { Curve, publicKeyFromDWalletOutput } from "@ika.xyz/sdk";
-import {
-  useCurrentWallet,
-  useSignTransaction,
-  useWallets,
-} from "@mysten/dapp-kit";
+import { useWalletConnection, useWallets } from "@mysten/dapp-kit-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
@@ -21,6 +17,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
+
 import { Mono } from "@/app/setup/_parts";
 import { ReplenishButton } from "@/components/vault/replenish-button";
 import {
@@ -31,6 +28,7 @@ import {
   resolveCredentialRequest,
   signerOptionToIdentity,
 } from "@/lib/credential-bridge";
+import { dAppKit } from "@/lib/dapp-kit";
 import { findMyEncryptedShareId } from "@/lib/encrypted-share-discovery";
 import { env } from "@/lib/env";
 import { ESTIMATE_PROPOSE } from "@/lib/gas-preflight";
@@ -93,9 +91,9 @@ export default function RecoverPage() {
   const params = useParams<{ recoveryId: string }>();
   const recoveryId = params.recoveryId;
   const { suiClient, session } = useRecoveryClient();
-  const { mutateAsync: walletSign } = useSignTransaction();
+  const walletSign = dAppKit.signTransaction;
   const wallets = useWallets();
-  const { currentWallet } = useCurrentWallet();
+  const { wallet: currentWallet } = useWalletConnection();
   const queryClient = useQueryClient();
 
   const vault = useVaultQuery(recoveryId, {

@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-
 import {
   buildSweepBundle,
   previewMessageBytes,
@@ -140,7 +139,11 @@ describe("buildSweepBundle", () => {
     const preview = previewMessageBytes(messages);
     const transfer = preview.txs[0]!.instructions.find(
       (i) => i.kind === "system-transfer",
-    ) as { kind: "system-transfer"; from: string; to: string };
+    ) as {
+      kind: "system-transfer";
+      from: string;
+      to: string;
+    };
     expect(transfer.from).toBe(SOURCE.toBase58());
     expect(transfer.to).toBe(DESTINATION.toBase58());
   });

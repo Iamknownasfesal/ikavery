@@ -23,7 +23,7 @@ import {
   UserShareEncryptionKeys,
 } from "@ika.xyz/sdk";
 import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
-import { getJsonRpcFullnodeUrl, SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import { SuiGrpcClient } from "@mysten/sui/grpc";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import {
@@ -166,8 +166,8 @@ async function discoverSourceTokenAccounts(
 
 async function main() {
   const network = env("SUI_NETWORK", "testnet") as "testnet" | "mainnet";
-  const sui = new SuiJsonRpcClient({
-    url: env("SUI_RPC_URL", getJsonRpcFullnodeUrl(network)),
+  const sui = new SuiGrpcClient({
+    baseUrl: env("SUI_RPC_URL", getGrpcFullnodeUrl(network)),
     network,
   });
   const ikaClient = new IkaClient({

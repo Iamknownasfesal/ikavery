@@ -1,6 +1,6 @@
 import type { IkaClient } from "@ika.xyz/sdk";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
 import type { Keypair } from "@mysten/sui/cryptography";
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
 
 /** Identifying info for the recovery instance and the package that owns it. */
 export interface RecoveryRef {
@@ -18,7 +18,7 @@ export interface RecoveryRef {
 export interface RecoveryClientConfig {
   ikaClient: IkaClient;
   /** Sui RPC client used by flows that need to sign + execute PTBs. */
-  suiClient: SuiJsonRpcClient;
+  suiClient: ClientWithCoreApi;
   ref: RecoveryRef;
   /** WebAuthn relying-party id, e.g. "recovery.example.com". */
   rpId: string;

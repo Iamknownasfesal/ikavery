@@ -1,11 +1,7 @@
 "use client";
 
 import { Button } from "@fesal-packages/ikavery-frontend-ui";
-import {
-  useCurrentAccount,
-  useCurrentWallet,
-  useSignTransaction,
-} from "@mysten/dapp-kit";
+import { useCurrentAccount, useWalletConnection } from "@mysten/dapp-kit-react";
 import { fromBase64 } from "@mysten/sui/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "framer-motion";
@@ -19,7 +15,9 @@ import {
 } from "lucide-react";
 import * as React from "react";
 import { createPortal } from "react-dom";
+
 import { WalletConnect } from "@/components/wallet-connect";
+import { dAppKit } from "@/lib/dapp-kit";
 import { useRecoveryClient } from "@/lib/recovery-client-context";
 import {
   PRESIGN_IKA_PER_CALL,
@@ -45,9 +43,9 @@ export function ReplenishButton({
 }: ReplenishButtonProps) {
   const queryClient = useQueryClient();
   const account = useCurrentAccount();
-  const { isConnecting: walletReconnecting } = useCurrentWallet();
+  const { isConnecting: walletReconnecting } = useWalletConnection();
   const { suiClient } = useRecoveryClient();
-  const { mutateAsync: walletSign } = useSignTransaction();
+  const walletSign = dAppKit.signTransaction;
 
   const [open, setOpen] = React.useState(false);
   const [mounted, setMounted] = React.useState(false);
@@ -223,9 +221,10 @@ export function ReplenishButton({
                         <div>
                           Requested{" "}
                           <span className="text-text">{done.count}</span> new
-                          presign{done.count === 1 ? "" : "s"}. They become
-                          signable once the Ika network completes them — usually
-                          a few seconds.
+                          presign
+                          {done.count === 1 ? "" : "s"}. They become signable
+                          once the Ika network completes them — usually a few
+                          seconds.
                           <div className="mt-1 font-mono text-[10.5px] tabular text-text-4 break-all">
                             {done.digest}
                           </div>

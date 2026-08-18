@@ -23,7 +23,10 @@ class DeriveBridge {
     if (this.worker) return this.worker;
     const worker = new Worker(
       new URL("../workers/derive.worker.ts", import.meta.url),
-      { type: "module", name: "ika-derive" },
+      {
+        type: "module",
+        name: "ika-derive",
+      },
     );
     worker.addEventListener("message", (e: MessageEvent<DeriveEvent>) => {
       const ev = e.data;

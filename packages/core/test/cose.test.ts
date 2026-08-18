@@ -7,7 +7,7 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import { p256 } from "@noble/curves/p256";
+import { p256 } from "@noble/curves/nist.js";
 
 import {
   cosePubkeyToCompressedP256,
@@ -100,7 +100,7 @@ function makeAttestationObject(coseKey: Uint8Array, credId: Uint8Array): Uint8Ar
 }
 
 function pickXY(): { x: Uint8Array; y: Uint8Array; compressed: Uint8Array } {
-  const sk = p256.utils.randomPrivateKey();
+  const sk = p256.utils.randomSecretKey();
   const uncompressed = p256.getPublicKey(sk, false);
   const x = uncompressed.subarray(1, 33);
   const y = uncompressed.subarray(33, 65);

@@ -29,6 +29,11 @@ const config: NextConfig = {
       },
     ];
   },
+  // Turbopack is the Next 16 default. The workspace packages are consumed as
+  // built JS, so the webpack `extensionAlias` below is only needed by the
+  // `--webpack` path; declaring an empty turbopack config opts this app into
+  // the default builder explicitly.
+  turbopack: {},
   webpack: (cfg) => {
     cfg.resolve = cfg.resolve ?? {};
     cfg.resolve.extensionAlias = {

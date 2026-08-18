@@ -1,10 +1,9 @@
 "use client";
 
 import { Button, Card, CardContent } from "@fesal-packages/ikavery-frontend-ui";
-import { useWallets } from "@mysten/dapp-kit";
+import type { UiWallet, UiWalletAccount } from "@mysten/dapp-kit-core";
+import { useWallets } from "@mysten/dapp-kit-react";
 import { isEnokiWallet } from "@mysten/enoki";
-import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard";
-import type { WalletAccount } from "@wallet-standard/core";
 import {
   AlertCircle,
   ArrowRight,
@@ -16,7 +15,9 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+
 import { usePasskey } from "@/hooks/use-passkey";
+import { dAppKit } from "@/lib/dapp-kit";
 import { captureWalletMember } from "@/lib/member-identity";
 import {
   type CachedImporter,
@@ -274,15 +275,11 @@ function WalletCard({
   // Wallets that can sign personal messages — what we need to derive a
   // deterministic encryption seed.
   const compatible = React.useMemo(
-    () =>
-      wallets.filter(
-        (w): w is WalletWithRequiredFeatures =>
-          !!w.features["sui:signPersonalMessage"],
-      ),
+    () => wallets.filter((w) => w.features.includes("sui:signPersonalMessage")),
     [wallets],
   );
 
-  async function handlePick(wallet: WalletWithRequiredFeatures) {
+  async function handlePick(wallet: UiWallet) {
     setBusy(true);
     setError(null);
     try {
@@ -293,21 +290,17 @@ function WalletCard({
       // Google identity (paired with prompt=select_account in the provider
       // config) without having to manually disconnect first.
       if (isEnokiWallet(wallet) && wallet.accounts.length > 0) {
-        const disconnect = wallet.features["standard:disconnect"];
-        if (disconnect) await disconnect.disconnect();
+        await dAppKit.disconnectWallet();
       }
       let accounts = wallet.accounts;
       if (accounts.length === 0) {
-        const connect = wallet.features["standard:connect"];
-        if (!connect) {
-          throw new Error(
-            `${wallet.name} doesn't expose a connect feature; can't read accounts.`,
-          );
-        }
-        const res = await connect.connect();
+        // dApp Kit 2 drives the wallet-standard features itself; reaching into
+        // `wallet.features` is no longer possible, since a UiWallet only names
+        // them.
+        const res = await dAppKit.connectWallet({ wallet });
         accounts = res.accounts;
       }
-      const account: WalletAccount | undefined = accounts[0];
+      const account: UiWalletAccount | undefined = accounts[0];
       if (!account) {
         throw new Error(`${wallet.name} did not return any accounts.`);
       }

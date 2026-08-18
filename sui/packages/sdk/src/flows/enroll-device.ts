@@ -12,6 +12,7 @@ import {
 import { bcs } from "@mysten/sui/bcs";
 import type { Keypair } from "@mysten/sui/cryptography";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
+
 import type { RecoveryClient } from "../client";
 import {
   buildEnrollApproveChallenge,

@@ -9,11 +9,7 @@ import {
   type RosterChangeSnapshot,
   readRosterChange,
 } from "@fesal-packages/ikavery-sui-sdk";
-import {
-  useCurrentWallet,
-  useSignTransaction,
-  useWallets,
-} from "@mysten/dapp-kit";
+import { useWalletConnection, useWallets } from "@mysten/dapp-kit-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
@@ -27,6 +23,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
+
 import { ErrorShell } from "@/components/vault/error-shell";
 import {
   SignerGasPayerCard,
@@ -36,6 +33,7 @@ import {
   resolveCredentialRequest,
   signerOptionToIdentity,
 } from "@/lib/credential-bridge";
+import { dAppKit } from "@/lib/dapp-kit";
 import { env } from "@/lib/env";
 import { bytesToHex, renderMemberIdentity, schemeLabel } from "@/lib/format";
 import { ESTIMATE_APPROVE } from "@/lib/gas-preflight";
@@ -67,8 +65,8 @@ export default function RosterChangeDetailPage() {
 
   const { suiClient, session } = useRecoveryClient();
   const wallets = useWallets();
-  const { currentWallet } = useCurrentWallet();
-  const { mutateAsync: walletSign } = useSignTransaction();
+  const { wallet: currentWallet } = useWalletConnection();
+  const walletSign = dAppKit.signTransaction;
   const queryClient = useQueryClient();
 
   const vault = useVaultQuery(recoveryId);

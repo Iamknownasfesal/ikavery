@@ -1,4 +1,4 @@
-import { p256 } from "@noble/curves/p256";
+import { p256 } from "@noble/curves/nist.js";
 
 /**
  * For ES256 (alg=-7) the WebAuthn `response.publicKey` is a 91-byte ASN.1
@@ -40,7 +40,7 @@ export function spkiToCompressedP256(spki: Uint8Array): Uint8Array {
     }
   }
   const uncompressed = spki.subarray(26, 91);
-  return p256.ProjectivePoint.fromHex(uncompressed).toRawBytes(true);
+  return p256.Point.fromBytes(uncompressed).toBytes(true);
 }
 
 /**
@@ -54,6 +54,10 @@ export function spkiToCompressedP256(spki: Uint8Array): Uint8Array {
  * would fail on-chain `assertion::verify_signature` with EAssertionInvalid.
  */
 export function derSigToCompactRaw64(der: Uint8Array): Uint8Array {
-  const sig = p256.Signature.fromDER(der).normalizeS();
-  return sig.toCompactRawBytes();
+  const sig = p256.Signature.fromBytes(der, "der");
+  // @noble/curves v2 removed `normalizeS()`, so flip high-S by hand: s -> n - s.
+  const normalized = sig.hasHighS()
+    ? new p256.Signature(sig.r, p256.Point.CURVE().n - sig.s)
+    : sig;
+  return normalized.toBytes("compact");
 }

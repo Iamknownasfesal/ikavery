@@ -11,11 +11,7 @@ import {
   type ProposalSnapshot,
   previewProposal,
 } from "@fesal-packages/ikavery-sui-sdk";
-import {
-  useCurrentWallet,
-  useSignTransaction,
-  useWallets,
-} from "@mysten/dapp-kit";
+import { useWalletConnection, useWallets } from "@mysten/dapp-kit-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowLeft,
@@ -30,6 +26,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
+
 import { ErrorShell } from "@/components/vault/error-shell";
 import {
   SignerGasPayerCard,
@@ -39,6 +36,7 @@ import {
   resolveCredentialRequest,
   signerOptionToIdentity,
 } from "@/lib/credential-bridge";
+import { dAppKit } from "@/lib/dapp-kit";
 import { findMyEncryptedShareId } from "@/lib/encrypted-share-discovery";
 import { env } from "@/lib/env";
 import { bytesToHex } from "@/lib/format";
@@ -71,9 +69,9 @@ export default function ProposalPage() {
   const recoveryId = params.recoveryId;
   const proposalIdStr = params.id;
   const { suiClient, session } = useRecoveryClient();
-  const { mutateAsync: walletSign } = useSignTransaction();
+  const walletSign = dAppKit.signTransaction;
   const wallets = useWallets();
-  const { currentWallet } = useCurrentWallet();
+  const { wallet: currentWallet } = useWalletConnection();
   const queryClient = useQueryClient();
 
   const proposalId = React.useMemo(() => {
@@ -335,7 +333,10 @@ export default function ProposalPage() {
       const broadcastResults = await broadcastSignedTransactions(
         conn,
         result.signedTransactions,
-        { skipPreflight: false, maxRetries: 5 },
+        {
+          skipPreflight: false,
+          maxRetries: 5,
+        },
       );
       const entries: BroadcastEntry[] = broadcastResults.map((r) => ({
         txIndex: r.txIndex,

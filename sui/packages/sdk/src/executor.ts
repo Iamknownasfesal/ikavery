@@ -1,6 +1,5 @@
-import type { SuiClientTypes } from "@mysten/sui/client";
+import type { ClientWithCoreApi, SuiClientTypes } from "@mysten/sui/client";
 import type { Keypair } from "@mysten/sui/cryptography";
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
 import type { Transaction } from "@mysten/sui/transactions";
 
 /**
@@ -36,7 +35,7 @@ export interface TransactionExecutor {
  */
 export function executorFromKeypair(
   keypair: Keypair,
-  suiClient: SuiJsonRpcClient,
+  suiClient: ClientWithCoreApi,
 ): TransactionExecutor {
   return {
     address: keypair.toSuiAddress(),
@@ -54,7 +53,7 @@ export interface SponsoredExecutorOptions {
   sender: Keypair;
   /** The gas payer — pays SUI for the transaction. */
   sponsor: Keypair;
-  suiClient: SuiJsonRpcClient;
+  suiClient: ClientWithCoreApi;
 }
 
 /**

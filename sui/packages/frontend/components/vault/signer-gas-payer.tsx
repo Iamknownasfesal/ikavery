@@ -3,9 +3,9 @@
 import { Card, cn } from "@fesal-packages/ikavery-frontend-ui";
 import {
   useCurrentAccount,
-  useCurrentWallet,
+  useWalletConnection,
   useWallets,
-} from "@mysten/dapp-kit";
+} from "@mysten/dapp-kit-react";
 import { parseSerializedSignature } from "@mysten/sui/cryptography";
 import { fromHex, normalizeSuiAddress } from "@mysten/sui/utils";
 import {
@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import * as React from "react";
+
 import { GasBudgetRow } from "@/components/vault/gas-budget-row";
 import { WalletConnect } from "@/components/wallet-connect";
 import type { CostEstimate } from "@/lib/gas-preflight";
@@ -97,7 +98,7 @@ export function useSignerState(vault: VaultState | undefined): {
 } {
   const account = useCurrentAccount();
   const wallets = useWallets();
-  const { isConnecting } = useCurrentWallet();
+  const { isConnecting } = useWalletConnection();
   const [cachedImporter, setCachedImporter] =
     React.useState<CachedImporter | null>(null);
   const [picked, setPicked] = React.useState<SignerOption | null>(null);

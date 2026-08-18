@@ -1,7 +1,7 @@
 import type { IkaClient } from "@ika.xyz/sdk";
 import { bcs } from "@mysten/sui/bcs";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
 import type { Keypair } from "@mysten/sui/cryptography";
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
 import { Transaction } from "@mysten/sui/transactions";
 
 import * as moveAssertion from "./generated/recovery/assertion";
@@ -16,7 +16,7 @@ import type { RecoveryClientConfig, RecoveryRef } from "./types";
  */
 export class RecoveryClient {
   readonly ikaClient: IkaClient;
-  readonly suiClient: SuiJsonRpcClient;
+  readonly suiClient: ClientWithCoreApi;
   readonly ref: RecoveryRef;
   readonly rpId: string;
   readonly gasSigner?: Keypair;

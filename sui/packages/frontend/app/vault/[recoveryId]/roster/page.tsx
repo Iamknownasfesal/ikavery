@@ -1,11 +1,7 @@
 "use client";
 
 import { Button, Card, cn } from "@fesal-packages/ikavery-frontend-ui";
-import {
-  useCurrentWallet,
-  useSignTransaction,
-  useWallets,
-} from "@mysten/dapp-kit";
+import { useWalletConnection, useWallets } from "@mysten/dapp-kit-react";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
@@ -21,6 +17,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
+
 import {
   SignerGasPayerCard,
   useSignerState,
@@ -29,6 +26,7 @@ import {
   resolveCredentialRequest,
   signerOptionToIdentity,
 } from "@/lib/credential-bridge";
+import { dAppKit } from "@/lib/dapp-kit";
 import { env } from "@/lib/env";
 import { bytesToHex, renderMemberIdentity, schemeLabel } from "@/lib/format";
 import { ESTIMATE_PROPOSE } from "@/lib/gas-preflight";
@@ -50,8 +48,8 @@ export default function ProposeRosterChangePage() {
   const recoveryId = params.recoveryId;
   const { suiClient, session } = useRecoveryClient();
   const wallets = useWallets();
-  const { currentWallet } = useCurrentWallet();
-  const { mutateAsync: walletSign } = useSignTransaction();
+  const { wallet: currentWallet } = useWalletConnection();
+  const walletSign = dAppKit.signTransaction;
   const queryClient = useQueryClient();
 
   const vault = useVaultQuery(recoveryId, { refetchInterval: 30_000 });

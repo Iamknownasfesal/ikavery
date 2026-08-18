@@ -1,4 +1,4 @@
-import { p256 } from "@noble/curves/p256";
+import { p256 } from "@noble/curves/nist.js";
 
 /**
  * Fallback path for browsers/authenticators that don't expose
@@ -94,7 +94,7 @@ export function cosePubkeyToCompressedP256(cose: Uint8Array): Uint8Array {
   uncompressed[0] = 0x04;
   uncompressed.set(x, 1);
   uncompressed.set(y, 33);
-  return p256.ProjectivePoint.fromHex(uncompressed).toRawBytes(true);
+  return p256.Point.fromBytes(uncompressed).toBytes(true);
 }
 
 /**
