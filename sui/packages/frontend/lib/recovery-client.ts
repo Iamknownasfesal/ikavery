@@ -2,12 +2,12 @@
 
 import { RecoveryClient } from "@fesal-packages/ikavery-sui-sdk";
 import { getNetworkConfig, IkaClient } from "@ika.xyz/sdk";
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
 
 import { env } from "./env";
 
 export function buildRecoveryClient(
-  suiClient: SuiJsonRpcClient,
+  suiClient: ClientWithCoreApi,
   recoveryId: string,
 ): RecoveryClient {
   const ikaClient = new IkaClient({
@@ -27,7 +27,7 @@ export function buildRecoveryClient(
   });
 }
 
-export function buildIkaClient(suiClient: SuiJsonRpcClient): IkaClient {
+export function buildIkaClient(suiClient: ClientWithCoreApi): IkaClient {
   return new IkaClient({
     suiClient,
     config: getNetworkConfig(env.network),

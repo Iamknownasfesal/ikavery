@@ -1,11 +1,11 @@
 "use client";
 
 import type { TransactionExecuteResult } from "@fesal-packages/ikavery-sui-sdk";
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import type { UiWallet, UiWalletAccount } from "@mysten/dapp-kit-core";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
 import type { Transaction } from "@mysten/sui/transactions";
-import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard";
-import type { WalletAccount } from "@wallet-standard/core";
 
+import { dAppKit } from "./dapp-kit";
 import { env } from "./env";
 
 /**
@@ -22,55 +22,12 @@ import { env } from "./env";
  * approver's address, since auth degenerates to `addr == ctx.sender`.
  */
 export type GasPayer = {
-  wallet: WalletWithRequiredFeatures;
-  account: WalletAccount;
+  wallet: UiWallet;
+  account: UiWalletAccount;
   walletName: string;
   walletIcon?: string;
   address: string;
 };
-
-/**
- * Local re-implementation of `@mysten/wallet-standard`'s `signTransaction`.
- * Prefers `sui:signTransaction` (v2) and falls back to the legacy
- * `sui:signTransactionBlock` for older wallets.
- */
-async function signWithWallet(
-  wallet: WalletWithRequiredFeatures,
-  input: {
-    transaction: { toJSON: () => Promise<string> };
-    account: { address: string };
-    chain: string;
-  },
-): Promise<{ bytes: string; signature: string }> {
-  const newFeature = wallet.features["sui:signTransaction"];
-  if (newFeature && "signTransaction" in newFeature) {
-    return await (
-      newFeature.signTransaction as (i: typeof input) => Promise<{
-        bytes: string;
-        signature: string;
-      }>
-    )(input);
-  }
-  const legacy = wallet.features["sui:signTransactionBlock"];
-  if (!legacy || !("signTransactionBlock" in legacy)) {
-    throw new Error(
-      `Wallet "${wallet.name}" doesn't support sui:signTransaction or its legacy form.`,
-    );
-  }
-  const json = await input.transaction.toJSON();
-  const out = await (
-    legacy.signTransactionBlock as (i: {
-      transactionBlock: unknown;
-      account: typeof input.account;
-      chain: typeof input.chain;
-    }) => Promise<{ transactionBlockBytes: string; signature: string }>
-  )({
-    transactionBlock: { toJSON: async () => json },
-    account: input.account,
-    chain: input.chain,
-  });
-  return { bytes: out.transactionBlockBytes, signature: out.signature };
-}
 
 /**
  * Build a `signAndExecute` callback for a single gas-payer wallet. That
@@ -92,15 +49,13 @@ export function buildSignAndExecute(opts: {
     transaction: Transaction;
   }) => Promise<{ bytes: string; signature: string }>;
   /** dapp-kit's "current wallet". Used to decide whether to use `walletSign`. */
-  currentWallet: WalletWithRequiredFeatures | null;
+  currentWallet: UiWallet | null;
   /** Progress callback for fine-grained UI phases. */
   onPhase?: (phase: string) => void;
-  suiClient: SuiJsonRpcClient;
+  suiClient: ClientWithCoreApi;
   network: string;
 }): (transaction: Transaction) => Promise<TransactionExecuteResult> {
-  const { gasPayer, walletSign, currentWallet, onPhase, suiClient, network } =
-    opts;
-  const chain = `sui:${network}`;
+  const { gasPayer, walletSign, currentWallet, onPhase, suiClient } = opts;
   const phase = (s: string) => {
     onPhase?.(s);
     if (typeof console !== "undefined") console.log("[tx]", s);
@@ -133,16 +88,12 @@ export function buildSignAndExecute(opts: {
       signature = r.signature;
     } else {
       phase(`Asking ${gasPayer.walletName} to sign…`);
-      const r = await signWithWallet(gasPayer.wallet, {
-        transaction: {
-          toJSON: async () =>
-            await transaction.toJSON({
-              supportedIntents: [],
-              client: suiClient,
-            }),
-        },
+      // dApp Kit dispatches sui:signTransaction, falling back to the legacy
+      // sui:signTransactionBlock itself, and resolves the transaction through
+      // its own (gRPC) client.
+      const r = await dAppKit.signTransaction({
+        transaction,
         account: gasPayer.account,
-        chain,
       });
       bytes = r.bytes;
       signature = r.signature;
@@ -169,7 +120,7 @@ export function buildSignAndExecute(opts: {
  * while the user still has a clear error to act on.
  */
 export async function simulateOrThrow(
-  suiClient: SuiJsonRpcClient,
+  suiClient: ClientWithCoreApi,
   transaction: Transaction,
 ): Promise<void> {
   let r: { $kind: string; FailedTransaction?: { status: unknown } };

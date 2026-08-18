@@ -7,7 +7,7 @@
  * out.
  */
 
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
 
 export interface BalanceSnapshot {
   sui: bigint;
@@ -99,7 +99,7 @@ export const ESTIMATE_ENROLL_EXECUTE: CostEstimate = {
  * the UI can fail open — show the warning, never crash).
  */
 export async function fetchBalances(
-  suiClient: SuiJsonRpcClient,
+  suiClient: ClientWithCoreApi,
   owner: string,
   ikaCoinType: string,
 ): Promise<BalanceSnapshot> {

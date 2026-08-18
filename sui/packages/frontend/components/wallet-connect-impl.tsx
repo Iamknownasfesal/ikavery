@@ -2,15 +2,15 @@
 
 import { Button, cn } from "@fesal-packages/ikavery-frontend-ui";
 import {
-  useConnectWallet,
   useCurrentAccount,
-  useCurrentWallet,
-  useDisconnectWallet,
+  useWalletConnection,
   useWallets,
-} from "@mysten/dapp-kit";
+} from "@mysten/dapp-kit-react";
 import { isEnokiWallet } from "@mysten/enoki";
 import { Check, ChevronDown, Loader2, Wallet, X } from "lucide-react";
 import * as React from "react";
+
+import { dAppKit } from "@/lib/dapp-kit";
 
 function truncate(addr: string, head = 6, tail = 4) {
   if (addr.length <= head + tail + 1) return addr;
@@ -46,9 +46,9 @@ export default function WalletConnectImpl({
   // after mount; useCurrentAccount() is null during that window. Use the
   // connection-status hook to render a "Reconnecting…" state instead of a
   // "Connect wallet" CTA, which is what the user actually sees on refresh.
-  const { isConnecting } = useCurrentWallet();
-  const { mutate: connect } = useConnectWallet();
-  const { mutate: disconnect } = useDisconnectWallet();
+  const { isConnecting } = useWalletConnection();
+  const connect = dAppKit.connectWallet;
+  const disconnect = dAppKit.disconnectWallet;
   const [open, setOpen] = React.useState(false);
   const [copied, setCopied] = React.useState(false);
   const [connectError, setConnectError] = React.useState<string | null>(null);
@@ -178,27 +178,23 @@ export default function WalletConnectImpl({
               onClick={() => {
                 setConnectError(null);
                 connectingRef.current = true;
-                connect(
-                  { wallet: w },
-                  {
-                    onSuccess: () => {
-                      connectingRef.current = false;
-                      setOpen(false);
-                    },
-                    onError: (err) => {
-                      connectingRef.current = false;
-                      const msg =
-                        err instanceof Error ? err.message : String(err);
-                      // User-cancellations are not errors. Don't shout.
-                      if (isUserCancelled(msg)) {
-                        setConnectError(null);
-                        return;
-                      }
-                      console.error("[wallet connect failed]", err);
-                      setConnectError(msg);
-                    },
-                  },
-                );
+                connect({ wallet: w })
+                  .then(() => {
+                    connectingRef.current = false;
+                    setOpen(false);
+                  })
+                  .catch((err: unknown) => {
+                    connectingRef.current = false;
+                    const msg =
+                      err instanceof Error ? err.message : String(err);
+                    // User-cancellations are not errors. Don't shout.
+                    if (isUserCancelled(msg)) {
+                      setConnectError(null);
+                      return;
+                    }
+                    console.error("[wallet connect failed]", err);
+                    setConnectError(msg);
+                  });
               }}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded text-left hover:bg-surface-3 transition-colors"
             >

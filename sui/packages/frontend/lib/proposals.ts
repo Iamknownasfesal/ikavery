@@ -4,7 +4,7 @@ import {
   type ProposalSnapshot,
   previewProposal,
 } from "@fesal-packages/ikavery-sui-sdk";
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
 
 import { buildRecoveryClient } from "./recovery-client";
 import type { VaultState } from "./recovery-state";
@@ -18,7 +18,7 @@ import type { VaultState } from "./recovery-state";
  * timer to keep approval counts fresh.
  */
 export async function listProposalSnapshots(
-  suiClient: SuiJsonRpcClient,
+  suiClient: ClientWithCoreApi,
   vault: VaultState,
 ): Promise<ProposalSnapshot[]> {
   const next = Number(vault.nextProposalId);

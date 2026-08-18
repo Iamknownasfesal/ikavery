@@ -1,10 +1,12 @@
 "use client";
 
 import { authenticate, registerPasskey } from "@fesal-packages/ikavery-core";
+import type { UiWallet, UiWalletAccount } from "@mysten/dapp-kit-core";
 import { parseSerializedSignature } from "@mysten/sui/cryptography";
-import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard";
-import type { WalletAccount } from "@wallet-standard/core";
+
 import type { StoredMember } from "@/store/setup";
+
+import { dAppKit } from "./dapp-kit";
 import { deriveIdentity } from "./derive";
 import { env } from "./env";
 import { bytesToHex } from "./storage";
@@ -94,24 +96,16 @@ const SUI_SCHEME_TO_APPROVER_ORIGIN: Record<
 export const MEMBER_ENCRYPTION_SEED_MESSAGE = `recovery-encryption-seed:v1:${env.recoveryPackageId}`;
 
 export async function captureWalletMember(
-  wallet: WalletWithRequiredFeatures,
-  account: WalletAccount,
+  wallet: UiWallet,
+  account: UiWalletAccount,
 ): Promise<StoredMember & { kind: "wallet" | "approver" }> {
-  const feature = wallet.features["sui:signPersonalMessage"];
-  if (!feature) {
-    throw new Error(
-      `Wallet "${wallet.name}" does not support sui:signPersonalMessage.`,
-    );
-  }
   const message = new TextEncoder().encode(MEMBER_ENCRYPTION_SEED_MESSAGE);
-  // Some wallets (notably Slush) require an explicit chain identifier or
-  // they reject the request. Pin it to the configured network — same chain
-  // the gas-payer wallet is connected to.
-  const chain = `sui:${env.network}` as const;
-  const { signature } = await feature.signPersonalMessage({
+  // dApp Kit pins the chain identifier from its current network, which is the
+  // same chain the gas-payer wallet is connected to. Some wallets (notably
+  // Slush) reject a request without one.
+  const { signature } = await dAppKit.signPersonalMessage({
     account,
     message,
-    chain,
   });
 
   // Parse the wrapped serialized signature to learn the scheme + the raw

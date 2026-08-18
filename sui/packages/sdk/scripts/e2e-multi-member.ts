@@ -24,7 +24,7 @@ import {
   UserShareEncryptionKeys,
 } from "@ika.xyz/sdk";
 import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
-import { getJsonRpcFullnodeUrl, SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import { SuiGrpcClient } from "@mysten/sui/grpc";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { Keypair as SolKeypair } from "@solana/web3.js";
 
@@ -53,10 +53,10 @@ function loadSolanaKeypair(path: string): SolKeypair {
 
 async function main() {
   const network = env("SUI_NETWORK", "testnet") as "testnet" | "mainnet";
-  const suiRpcUrl = env("SUI_RPC_URL", getJsonRpcFullnodeUrl(network));
+  const suiRpcUrl = env("SUI_RPC_URL", getGrpcFullnodeUrl(network));
   console.log("sui rpc        :", suiRpcUrl);
 
-  const sui = new SuiJsonRpcClient({ url: suiRpcUrl, network });
+  const sui = new SuiGrpcClient({ baseUrl: suiRpcUrl, network });
   const ikaClient = new IkaClient({
     suiClient: sui,
     config: getNetworkConfig(network),

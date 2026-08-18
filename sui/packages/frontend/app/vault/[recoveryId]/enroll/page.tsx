@@ -2,20 +2,15 @@
 
 import { Button, Card, cn } from "@fesal-packages/ikavery-frontend-ui";
 import type { NewMemberInput } from "@fesal-packages/ikavery-sui-sdk";
-import {
-  useCurrentWallet,
-  useSignTransaction,
-  useWallets,
-} from "@mysten/dapp-kit";
+import type { UiWallet, UiWalletAccount } from "@mysten/dapp-kit-core";
+import { useWalletConnection, useWallets } from "@mysten/dapp-kit-react";
 import { isEnokiWallet } from "@mysten/enoki";
 import {
   fromHex,
   isValidSuiAddress,
   normalizeSuiAddress,
 } from "@mysten/sui/utils";
-import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard";
 import { useQueryClient } from "@tanstack/react-query";
-import type { WalletAccount } from "@wallet-standard/core";
 import {
   AlertCircle,
   ArrowLeft,
@@ -31,6 +26,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
+
 import {
   SignerGasPayerCard,
   useSignerState,
@@ -39,6 +35,7 @@ import {
   resolveCredentialRequest,
   signerOptionToIdentity,
 } from "@/lib/credential-bridge";
+import { dAppKit } from "@/lib/dapp-kit";
 import { env } from "@/lib/env";
 import { ESTIMATE_PROPOSE } from "@/lib/gas-preflight";
 import {
@@ -95,8 +92,8 @@ export default function EnrollPage() {
   const recoveryId = params.recoveryId;
   const { suiClient, session } = useRecoveryClient();
   const wallets = useWallets();
-  const { currentWallet } = useCurrentWallet();
-  const { mutateAsync: walletSign } = useSignTransaction();
+  const { wallet: currentWallet } = useWalletConnection();
+  const walletSign = dAppKit.signTransaction;
   const queryClient = useQueryClient();
 
   const vault = useVaultQuery(recoveryId, { refetchInterval: 30_000 });
@@ -572,7 +569,7 @@ function WalletCapture({
   captured,
   onCaptured,
 }: {
-  wallets: readonly WalletWithRequiredFeatures[];
+  wallets: readonly UiWallet[];
   captured: Captured | null;
   onCaptured: (c: Captured | null) => void;
 }) {
@@ -583,34 +580,26 @@ function WalletCapture({
     captured?.kind === "wallet" || captured?.kind === "wallet-approver";
 
   const compatible = React.useMemo(
-    () =>
-      wallets.filter(
-        (w): w is WalletWithRequiredFeatures =>
-          !!w.features["sui:signPersonalMessage"],
-      ),
+    () => wallets.filter((w) => w.features.includes("sui:signPersonalMessage")),
     [wallets],
   );
 
-  async function handlePick(wallet: WalletWithRequiredFeatures) {
+  async function handlePick(wallet: UiWallet) {
     setBusy(true);
     setError(null);
     try {
       if (isEnokiWallet(wallet) && wallet.accounts.length > 0) {
-        const disconnect = wallet.features["standard:disconnect"];
-        if (disconnect) await disconnect.disconnect();
+        await dAppKit.disconnectWallet();
       }
       let accounts = wallet.accounts;
       if (accounts.length === 0) {
-        const connect = wallet.features["standard:connect"];
-        if (!connect) {
-          throw new Error(
-            `${wallet.name} doesn't expose a connect feature; can't read accounts.`,
-          );
-        }
-        const res = await connect.connect();
+        // dApp Kit 2 drives the wallet-standard features itself; reaching into
+        // `wallet.features` is no longer possible, since a UiWallet only names
+        // them.
+        const res = await dAppKit.connectWallet({ wallet });
         accounts = res.accounts;
       }
-      const account: WalletAccount | undefined = accounts[0];
+      const account: UiWalletAccount | undefined = accounts[0];
       if (!account) {
         throw new Error(`${wallet.name} did not return any accounts.`);
       }

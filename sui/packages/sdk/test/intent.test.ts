@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-
 import {
   buildSweepBundle,
   SOLANA_SYSTEM_ACCOUNT_RENT_EXEMPT,
@@ -11,6 +10,7 @@ import {
   type TransactionInstruction,
   TransactionMessage,
 } from "@solana/web3.js";
+
 import {
   extractIntent,
   extractIntents,

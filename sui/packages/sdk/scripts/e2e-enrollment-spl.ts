@@ -17,7 +17,7 @@
  *   SOLANA_SOURCE_PATH       existing — fresh keypair for THIS run
  *   SOLANA_DESTINATION       existing — base58 destination
  *   SOLANA_RPC               default https://api.devnet.solana.com
- *   SUI_RPC_URL              default getJsonRpcFullnodeUrl(testnet)
+ *   SUI_RPC_URL              default getGrpcFullnodeUrl(testnet)
  *   SOLANA_ADMIN_PATH        NEW — Solana keypair holding 1+ SOL to fund
  *                             source + create mints + mint tokens. Defaults to
  *                             ~/.config/solana/devnet-admin.json.
@@ -35,7 +35,7 @@ import {
   UserShareEncryptionKeys,
 } from "@ika.xyz/sdk";
 import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
-import { getJsonRpcFullnodeUrl, SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import { SuiGrpcClient } from "@mysten/sui/grpc";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import {
@@ -253,10 +253,10 @@ async function setupSplMints(
 
 async function main() {
   const network = env("SUI_NETWORK", "testnet") as "testnet" | "mainnet";
-  const suiRpcUrl = env("SUI_RPC_URL", getJsonRpcFullnodeUrl(network));
+  const suiRpcUrl = env("SUI_RPC_URL", getGrpcFullnodeUrl(network));
   console.log("sui rpc        :", suiRpcUrl);
 
-  const sui = new SuiJsonRpcClient({ url: suiRpcUrl, network });
+  const sui = new SuiGrpcClient({ baseUrl: suiRpcUrl, network });
   const ikaClient = new IkaClient({
     suiClient: sui,
     config: getNetworkConfig(network),

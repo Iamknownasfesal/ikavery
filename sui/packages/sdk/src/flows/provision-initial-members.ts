@@ -15,6 +15,7 @@ import {
 } from "@ika.xyz/sdk";
 import type { Keypair } from "@mysten/sui/cryptography";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
+
 import type { RecoveryClient } from "../client";
 import { executorFromKeypair, type TransactionExecutor } from "../executor";
 import { buildNewMembersVec, type NewMemberInput } from "../move/members";
@@ -537,7 +538,10 @@ export async function provisionInitialMembers(
   const activeDWallet = (await ikaClient.getDWalletInParticularState(
     dwalletId,
     "Active",
-    { timeout: timeoutMs, interval: pollIntervalMs },
+    {
+      timeout: timeoutMs,
+      interval: pollIntervalMs,
+    },
   )) as ImportedKeyDWallet;
   const sourceShareKHS = await ikaClient.getEncryptedUserSecretKeyShare(
     importerEncryptedUserShareId,

@@ -1,6 +1,7 @@
 "use client";
 
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import { bcs } from "@mysten/sui/bcs";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
 import { normalizeSuiAddress } from "@mysten/sui/utils";
 
 import { buildIkaClient } from "./recovery-client";
@@ -17,7 +18,7 @@ import { buildIkaClient } from "./recovery-client";
  * Returns null when the table is empty or no share matches.
  */
 export async function findMyEncryptedShareId(
-  suiClient: SuiJsonRpcClient,
+  suiClient: ClientWithCoreApi,
   dwalletId: string,
   encryptionAddress: string,
 ): Promise<string | null> {
@@ -36,16 +37,17 @@ export async function findMyEncryptedShareId(
   void cursor; // silence unused — we only paginate dynamic fields below.
 
   while (true) {
-    const page = await suiClient.getDynamicFields({
+    const page = await suiClient.core.listDynamicFields({
       parentId: tableId,
       cursor: pageCursor ?? null,
     });
 
-    for (const f of page.data) {
+    for (const f of page.dynamicFields) {
       // For ObjectTable<ID, V>, the dynamic-field NAME holds the share's id
       // (as a Sui address-shaped string). The wrapped V lives at that same
       // id under the table — we can fetch it directly via the SDK.
-      const candidateId = String(f.name.value);
+      // Core API hands back the field name as BCS rather than decoded JSON.
+      const candidateId = bcs.Address.parse(f.name.bcs);
       try {
         const share =
           await ikaClient.getEncryptedUserSecretKeyShare(candidateId);
@@ -57,6 +59,6 @@ export async function findMyEncryptedShareId(
     }
 
     if (!page.hasNextPage) return null;
-    pageCursor = page.nextCursor;
+    pageCursor = page.cursor;
   }
 }

@@ -1,5 +1,5 @@
 import { bcs } from "@mysten/sui/bcs";
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
 import { Transaction } from "@mysten/sui/transactions";
 
 import { env } from "./env";
@@ -17,7 +17,7 @@ import { env } from "./env";
  *   - scheme 3 webauthn:  1 + 33 bytes (compressed P-256 passkey pubkey)
  */
 export async function listRecoveriesForMember(
-  suiClient: SuiJsonRpcClient,
+  suiClient: ClientWithCoreApi,
   memberId: Uint8Array,
 ): Promise<string[]> {
   const tx = new Transaction();

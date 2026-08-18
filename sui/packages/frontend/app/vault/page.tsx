@@ -1,7 +1,7 @@
 "use client";
 
 import { Button, Card } from "@fesal-packages/ikavery-frontend-ui";
-import { useCurrentAccount, useCurrentWallet } from "@mysten/dapp-kit";
+import { useCurrentAccount, useWalletConnection } from "@mysten/dapp-kit-react";
 import { useQuery } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+
 import { WalletConnect } from "@/components/wallet-connect";
 import { deriveIdentity } from "@/lib/derive";
 import { env } from "@/lib/env";
@@ -34,7 +35,7 @@ import {
 export default function VaultLanding() {
   const router = useRouter();
   const account = useCurrentAccount();
-  const { isConnecting: walletReconnecting } = useCurrentWallet();
+  const { isConnecting: walletReconnecting } = useWalletConnection();
   const { suiClient } = useRecoveryClient();
 
   const [savedVaults, setSavedVaults] = React.useState<SavedVault[] | null>(

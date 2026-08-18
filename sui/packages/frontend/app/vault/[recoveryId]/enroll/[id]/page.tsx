@@ -9,11 +9,7 @@ import {
   type EnrollmentSnapshot,
   readEnrollment,
 } from "@fesal-packages/ikavery-sui-sdk";
-import {
-  useCurrentWallet,
-  useSignTransaction,
-  useWallets,
-} from "@mysten/dapp-kit";
+import { useWalletConnection, useWallets } from "@mysten/dapp-kit-react";
 import { normalizeSuiAddress } from "@mysten/sui/utils";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -27,6 +23,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
+
 import { ErrorShell } from "@/components/vault/error-shell";
 import {
   SignerGasPayerCard,
@@ -36,6 +33,7 @@ import {
   resolveCredentialRequest,
   signerOptionToIdentity,
 } from "@/lib/credential-bridge";
+import { dAppKit } from "@/lib/dapp-kit";
 import { findMyEncryptedShareId } from "@/lib/encrypted-share-discovery";
 import { env } from "@/lib/env";
 import { bytesToHex } from "@/lib/format";
@@ -77,8 +75,8 @@ export default function EnrollmentDetailPage() {
 
   const { suiClient, session } = useRecoveryClient();
   const wallets = useWallets();
-  const { currentWallet } = useCurrentWallet();
-  const { mutateAsync: walletSign } = useSignTransaction();
+  const { wallet: currentWallet } = useWalletConnection();
+  const walletSign = dAppKit.signTransaction;
   const queryClient = useQueryClient();
 
   const vault = useVaultQuery(recoveryId);

@@ -19,10 +19,11 @@ import {
   UserShareEncryptionKeys,
 } from "@ika.xyz/sdk";
 import { decodeSuiPrivateKey } from "@mysten/sui/cryptography";
-import { getJsonRpcFullnodeUrl, SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import { SuiGrpcClient } from "@mysten/sui/grpc";
 import { Ed25519Keypair } from "@mysten/sui/keypairs/ed25519";
 import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { Connection, PublicKey, Keypair as SolKeypair } from "@solana/web3.js";
+
 import { RecoveryClient } from "../src/client";
 import { importSolanaKey } from "../src/flows/import-key";
 import {
@@ -133,12 +134,9 @@ async function waitForPresigns(
 async function main() {
   const network = env("SUI_NETWORK", "testnet") as "testnet" | "mainnet";
   // Allow override since the public testnet RPC is aggressively rate-limited.
-  const suiRpcUrl = env("SUI_RPC_URL", getJsonRpcFullnodeUrl(network));
+  const suiRpcUrl = env("SUI_RPC_URL", getGrpcFullnodeUrl(network));
   console.log("sui rpc        :", suiRpcUrl);
-  const sui = new SuiJsonRpcClient({
-    url: suiRpcUrl,
-    network,
-  });
+  const sui = new SuiGrpcClient({ baseUrl: suiRpcUrl, network });
   const ikaClient = new IkaClient({
     suiClient: sui,
     config: getNetworkConfig(network),
@@ -310,7 +308,10 @@ async function main() {
   const broadcastResults = await broadcastSignedTransactions(
     conn,
     exec.signedTransactions,
-    { skipPreflight: false, maxRetries: 5 },
+    {
+      skipPreflight: false,
+      maxRetries: 5,
+    },
   );
   for (const r of broadcastResults) {
     if (r.signature) {

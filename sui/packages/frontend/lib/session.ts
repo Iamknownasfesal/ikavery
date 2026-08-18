@@ -1,12 +1,15 @@
 "use client";
 
-import type {
-  CredentialInput,
-  NewMemberInput,
-  TransactionExecuteResult,
+import {
+  type CredentialInput,
+  getGrpcFullnodeUrl,
+  type NewMemberInput,
+  type TransactionExecuteResult,
 } from "@fesal-packages/ikavery-sui-sdk";
-import { getJsonRpcFullnodeUrl, SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
+import { SuiGrpcClient } from "@mysten/sui/grpc";
 import { Transaction } from "@mysten/sui/transactions";
+
 import type {
   ApproveEnrollmentResultDTO,
   ApproveRecoveryResultDTO,
@@ -24,6 +27,7 @@ import type {
   SessionConfig,
   SessionEvent,
 } from "@/workers/session.worker";
+
 import { env } from "./env";
 
 export type ImportKeyPhase =
@@ -205,15 +209,21 @@ export class Session {
   private nextId = 1;
   private pending = new Map<number, PendingJob>();
   readonly ready: Promise<void>;
-  readonly suiClient: SuiJsonRpcClient;
+  readonly suiClient: ClientWithCoreApi;
 
   private constructor(config: SessionConfig) {
-    const url = config.rpcUrl || getJsonRpcFullnodeUrl(config.network);
-    this.suiClient = new SuiJsonRpcClient({ url, network: config.network });
+    const url = config.rpcUrl || getGrpcFullnodeUrl(config.network);
+    this.suiClient = new SuiGrpcClient({
+      baseUrl: url,
+      network: config.network,
+    });
 
     this.worker = new Worker(
       new URL("../workers/session.worker.ts", import.meta.url),
-      { type: "module", name: "ika-session" },
+      {
+        type: "module",
+        name: "ika-session",
+      },
     );
     this.worker.addEventListener("message", (e: MessageEvent<SessionEvent>) => {
       const ev = e.data;

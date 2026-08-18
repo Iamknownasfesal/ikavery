@@ -1,7 +1,7 @@
 {
   "name": "@fesal-packages/ikavery-sui-sdk",
   "version": "0.1.0",
-  "description": "Sui-side SDK for the Ikavery dWallet recovery protocol — passkey-gated key import, threshold approval, and cross-chain sweep flows.",
+  "description": "Sui-side SDK for the Ikavery dWallet recovery protocol \u2014 passkey-gated key import, threshold approval, and cross-chain sweep flows.",
   "license": "BSD-3-Clause",
   "author": "fesal <https://github.com/iamknownasfesal>",
   "homepage": "https://sui.ikavery.com",
@@ -46,18 +46,18 @@
   },
   "dependencies": {
     "@fesal-packages/ikavery-core": "workspace:*",
-    "@ika.xyz/sdk": "^0.4.0",
-    "@mysten/bcs": "^2.0.3",
-    "@mysten/sui": "^2.16.0",
-    "@noble/curves": "^1.6.0",
-    "@noble/hashes": "^1.5.0",
-    "@simplewebauthn/browser": "^11.0.0",
+    "@ika.xyz/sdk": "^0.5.0",
+    "@mysten/bcs": "^2.1.0",
+    "@mysten/sui": "^2.26.1",
+    "@noble/curves": "^2.3.0",
+    "@noble/hashes": "^2.3.0",
+    "@simplewebauthn/browser": "^13.3.0",
     "@solana/spl-token": "^0.4.9",
     "@solana/web3.js": "^1.95.4"
   },
   "devDependencies": {
-    "@mysten/codegen": "^0.10.4",
+    "@mysten/codegen": "^0.12.2",
     "@types/bun": "^1.1.13",
-    "typescript": "^5.6.3"
+    "typescript": "^6.0.3"
   }
 }

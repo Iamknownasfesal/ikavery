@@ -1,6 +1,6 @@
 "use client";
 
-import type { SuiJsonRpcClient } from "@mysten/sui/jsonRpc";
+import type { ClientWithCoreApi } from "@mysten/sui/client";
 import * as React from "react";
 
 import { Session } from "./session";
@@ -13,7 +13,7 @@ interface CtxValue {
   /** Session worker — null until the browser has spawned it post-hydration. */
   session: Session | null;
   /** Lightweight Sui RPC client on the main thread. No WASM. */
-  suiClient: SuiJsonRpcClient | null;
+  suiClient: ClientWithCoreApi | null;
 }
 
 const Ctx = React.createContext<CtxValue>({

@@ -1,11 +1,7 @@
 "use client";
 
 import { Button, Card } from "@fesal-packages/ikavery-frontend-ui";
-import {
-  useCurrentAccount,
-  useCurrentWallet,
-  useSignTransaction,
-} from "@mysten/dapp-kit";
+import { useCurrentAccount, useWalletConnection } from "@mysten/dapp-kit-react";
 import { fromBase64 } from "@mysten/sui/utils";
 import {
   AlertCircle,
@@ -19,8 +15,10 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+
 import { GasBudgetRow } from "@/components/vault/gas-budget-row";
 import { WalletConnect } from "@/components/wallet-connect";
+import { dAppKit } from "@/lib/dapp-kit";
 import { env } from "@/lib/env";
 import { bytesToHex } from "@/lib/format";
 import { ESTIMATE_IMPORT } from "@/lib/gas-preflight";
@@ -48,12 +46,12 @@ export default function ReviewStep() {
 
   const { session, suiClient, status: clientStatus } = useRecoveryClient();
   const account = useCurrentAccount();
-  const { isConnecting: walletReconnecting } = useCurrentWallet();
+  const { isConnecting: walletReconnecting } = useWalletConnection();
   // Sign-only — we run executeTransaction ourselves to get the rich
   // events/effects/objectTypes shape the recovery SDK consumes.
   // useSignAndExecuteTransaction would post-process for `effects.bcs` /
   // `rawEffects`, which the new core API doesn't expose at the top level.
-  const { mutateAsync: walletSign } = useSignTransaction();
+  const walletSign = dAppKit.signTransaction;
 
   const [state, setState] = React.useState<SubmitState>({ stage: "idle" });
 

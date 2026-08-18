@@ -1,6 +1,6 @@
 import { u64ToLeBytes } from "@fesal-packages/ikavery-core";
-import { sha256 } from "@noble/hashes/sha2";
-import { concatBytes, hexToBytes } from "@noble/hashes/utils";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { concatBytes, hexToBytes } from "@noble/hashes/utils.js";
 
 import {
   TAG_APPROVE,

@@ -13,7 +13,7 @@ import {
   type ProposalSnapshot,
   type RosterChangeSnapshot,
 } from "@fesal-packages/ikavery-sui-sdk";
-import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useCurrentAccount } from "@mysten/dapp-kit-react";
 import { fromHex, normalizeSuiAddress } from "@mysten/sui/utils";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
+
 import { ReplenishButton } from "@/components/vault/replenish-button";
 import { env } from "@/lib/env";
 import { bytesToHex } from "@/lib/format";

@@ -18,6 +18,7 @@ export * as moveAuth from "./generated/recovery/auth";
 export * as moveRecovery from "./generated/recovery/recovery";
 export * as moveRegistry from "./generated/recovery/registry";
 export * as moveSweepIntent from "./generated/recovery/sweep_intent";
+export * from "./grpc-url";
 export * from "./move/credential";
 export * from "./move/members";
 export * from "./types";

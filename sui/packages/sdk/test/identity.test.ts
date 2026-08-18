@@ -1,5 +1,4 @@
 import { describe, expect, test } from "bun:test";
-
 import { deriveDeviceIdentity } from "@fesal-packages/ikavery-core";
 
 const SEED_A = new Uint8Array(32).fill(0x11);

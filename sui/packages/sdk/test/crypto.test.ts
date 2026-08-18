@@ -1,13 +1,12 @@
 import { describe, expect, test } from "bun:test";
-
 import {
   derSigToCompactRaw64,
   spkiToCompressedP256,
   u64ToLeBytes,
 } from "@fesal-packages/ikavery-core";
-import { p256 } from "@noble/curves/p256";
-import { sha256 } from "@noble/hashes/sha2";
-import { concatBytes, hexToBytes } from "@noble/hashes/utils";
+import { p256 } from "@noble/curves/nist.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { concatBytes, hexToBytes } from "@noble/hashes/utils.js";
 
 import {
   buildApproveChallenge,
@@ -235,16 +234,16 @@ describe("roster-change challenges", () => {
 
 describe("derSigToCompactRaw64", () => {
   test("round-trips a real P-256 signature", () => {
-    const sk = p256.utils.randomPrivateKey();
+    const sk = p256.utils.randomSecretKey();
     const msg = sha256(enc.encode("hello"));
-    const sigObj = p256.sign(msg, sk);
-    const der = sigObj.toDERRawBytes();
+    const der = p256.sign(msg, sk, { format: "der" });
     const raw = derSigToCompactRaw64(der);
     expect(raw.length).toBe(64);
     // Sui's ecdsa_r1 verifier rejects high-S signatures, so derSigToCompactRaw64
-    // normalizes to low-S; compare against the same normalization.
+    // normalizes to low-S; @noble/curves v2 signs low-S by default, so the
+    // compact form of the same signature is the expected value.
     expect(Array.from(raw)).toEqual(
-      Array.from(sigObj.normalizeS().toCompactRawBytes()),
+      Array.from(p256.Signature.fromBytes(der, "der").toBytes("compact")),
     );
   });
   test("rejects malformed DER", () => {
@@ -254,7 +253,7 @@ describe("derSigToCompactRaw64", () => {
 
 describe("spkiToCompressedP256", () => {
   test("round-trips a freshly-generated P-256 key", () => {
-    const sk = p256.utils.randomPrivateKey();
+    const sk = p256.utils.randomSecretKey();
     const compressed = p256.getPublicKey(sk, true);
     const uncompressed = p256.getPublicKey(sk, false);
     const spki = buildEs256Spki(uncompressed);
@@ -266,14 +265,14 @@ describe("spkiToCompressedP256", () => {
     expect(() => spkiToCompressedP256(new Uint8Array(90))).toThrow(/91 bytes/);
   });
   test("rejects wrong ES256 prefix", () => {
-    const sk = p256.utils.randomPrivateKey();
+    const sk = p256.utils.randomSecretKey();
     const uncompressed = p256.getPublicKey(sk, false);
     const spki = buildEs256Spki(uncompressed);
     spki[0] = 0x31;
     expect(() => spkiToCompressedP256(spki)).toThrow(/prefix mismatch/);
   });
   test("uncompressed point lives at bytes 26..91", () => {
-    const sk = p256.utils.randomPrivateKey();
+    const sk = p256.utils.randomSecretKey();
     const uncompressed = p256.getPublicKey(sk, false);
     const spki = buildEs256Spki(uncompressed);
     expect(spki[26]).toBe(0x04);

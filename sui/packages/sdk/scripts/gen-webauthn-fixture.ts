@@ -10,9 +10,9 @@
  * The fixture is otherwise stable; we use a fixed seed so output is
  * deterministic across runs.
  */
-import { p256 } from "@noble/curves/p256";
-import { sha256 } from "@noble/hashes/sha2";
-import { concatBytes } from "@noble/hashes/utils";
+import { p256 } from "@noble/curves/nist.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { concatBytes } from "@noble/hashes/utils.js";
 
 import { spkiToCompressedP256 } from "../src/passkey/spki";
 

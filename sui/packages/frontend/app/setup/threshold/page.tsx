@@ -1,14 +1,13 @@
 "use client";
 
 import { Button, Card } from "@fesal-packages/ikavery-frontend-ui";
+import type { UiWallet, UiWalletAccount } from "@mysten/dapp-kit-core";
 import {
   useCurrentAccount,
-  useCurrentWallet,
+  useWalletConnection,
   useWallets,
-} from "@mysten/dapp-kit";
+} from "@mysten/dapp-kit-react";
 import { isEnokiWallet } from "@mysten/enoki";
-import type { WalletWithRequiredFeatures } from "@mysten/wallet-standard";
-import type { WalletAccount } from "@wallet-standard/core";
 import {
   AlertCircle,
   ArrowLeft,
@@ -22,7 +21,9 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+
 import { WalletConnect } from "@/components/wallet-connect";
+import { dAppKit } from "@/lib/dapp-kit";
 import {
   capturePasskeyMember,
   captureWalletMember,
@@ -39,7 +40,7 @@ export default function ThresholdStep() {
   const threshold = useSetup((s) => s.threshold);
   const setThreshold = useSetup((s) => s.setThreshold);
   const gasPayer = useCurrentAccount();
-  const { isConnecting: walletReconnecting } = useCurrentWallet();
+  const { isConnecting: walletReconnecting } = useWalletConnection();
 
   React.useEffect(() => {
     if (!importer) router.replace("/setup/connect");
@@ -388,15 +389,11 @@ function AddWalletTab({
   // Filter to wallets that can sign personal messages — this is the only
   // feature we need from the wallet to derive a deterministic encryption seed.
   const compatible = React.useMemo(
-    () =>
-      wallets.filter(
-        (w): w is WalletWithRequiredFeatures =>
-          !!w.features["sui:signPersonalMessage"],
-      ),
+    () => wallets.filter((w) => w.features.includes("sui:signPersonalMessage")),
     [wallets],
   );
 
-  async function handlePick(wallet: WalletWithRequiredFeatures) {
+  async function handlePick(wallet: UiWallet) {
     setBusy(true);
     setError(null);
     try {
@@ -405,23 +402,19 @@ function AddWalletTab({
       // added member. Without this, connect() short-circuits to the cached
       // account and we end up with "already in the roster".
       if (isEnokiWallet(wallet) && wallet.accounts.length > 0) {
-        const disconnect = wallet.features["standard:disconnect"];
-        if (disconnect) await disconnect.disconnect();
+        await dAppKit.disconnectWallet();
       }
       // Make sure the wallet has at least one account exposed. If the user has
       // never connected this wallet, the connect handshake also prompts.
       let accounts = wallet.accounts;
       if (accounts.length === 0) {
-        const connect = wallet.features["standard:connect"];
-        if (!connect) {
-          throw new Error(
-            `${wallet.name} doesn't expose a connect feature; can't read accounts.`,
-          );
-        }
-        const res = await connect.connect();
+        // dApp Kit 2 drives the wallet-standard features itself; reaching into
+        // `wallet.features` is no longer possible, since a UiWallet only names
+        // them.
+        const res = await dAppKit.connectWallet({ wallet });
         accounts = res.accounts;
       }
-      const account: WalletAccount | undefined = accounts[0];
+      const account: UiWalletAccount | undefined = accounts[0];
       if (!account) {
         throw new Error(`${wallet.name} did not return any accounts.`);
       }
